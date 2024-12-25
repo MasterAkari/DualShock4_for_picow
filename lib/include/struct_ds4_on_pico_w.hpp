@@ -1,5 +1,5 @@
 /**
- * @file struct_ds4.hpp
+ * @file struct_ds4_on_pico_w.hpp
  * @brief
  * @version 0.1
  * @date 2024-12-25
@@ -11,7 +11,7 @@
 #define STRUCT_DS4_FOR_PICO_W_HPP
 #include <stdint.h>
 
-struct dual_shock_4_picow {
+struct controller_state {
     // Directional buttons
     uint16_t directional = 0;
     // Share button
@@ -51,6 +51,36 @@ struct dual_shock_4_picow {
     uint8_t lsx;
     uint8_t lsy;
     bool l3 = false;
+
+    // Gyro sensor
+    uint16_t gyro_x;
+    uint16_t gyro_y;
+    uint16_t gyro_z;
+
+    // Acceleration sensor
+    uint16_t accel_x;
+    uint16_t accel_y;
+    uint16_t accel_z;
+
+    // Battery level
+    uint8_t battery;
+
+    // Temperature
+    uint16_t temperature;
+
+    // Timestamp
+    uint16_t timestamp;
+
+    // Status
+    uint8_t status[2];
+
+    // Padding
+    uint8_t pad;
+    uint8_t pad2;
+    uint8_t pad3;
+
+    // Hat
+    uint8_t hat;
 };
 
 struct bt_hid_state {

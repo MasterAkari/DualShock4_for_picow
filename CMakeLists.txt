@@ -27,7 +27,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(DualShock4_for_picow C CXX ASM)
+project(DualShock4_on_picow C CXX ASM)
 
 set(PICO_CXX_ENABLE_EXCEPTIONS 1)
 
@@ -42,30 +42,30 @@ add_subdirectory(lib)
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(DualShock4_for_picow
+add_executable(DualShock4_on_picow
   main.cpp
 )
 
-pico_set_program_name(DualShock4_for_picow "DualShock4_for_picow")
-pico_set_program_version(DualShock4_for_picow "0.1")
+pico_set_program_name(DualShock4_on_picow "DualShock4_on_picow")
+pico_set_program_version(DualShock4_on_picow "0.1.0")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(DualShock4_for_picow 0)
-pico_enable_stdio_usb(DualShock4_for_picow 1)
+pico_enable_stdio_uart(DualShock4_on_picow 0)
+pico_enable_stdio_usb(DualShock4_on_picow 1)
 
 # Add the standard library to the build
-target_link_libraries(DualShock4_for_picow
+target_link_libraries(DualShock4_on_picow
     pico_stdlib
 )
 
 # Add the standard include files to the build
-target_include_directories(DualShock4_for_picow PRIVATE
+target_include_directories(DualShock4_on_picow PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
 )
 
 # Add any user requested libraries
-target_link_libraries(DualShock4_for_picow
-    lib_ds4_for_pico
+target_link_libraries(DualShock4_on_picow
+    lib_ds4_on_pico
 )
 
-pico_add_extra_outputs(DualShock4_for_picow)
+pico_add_extra_outputs(DualShock4_on_picow)

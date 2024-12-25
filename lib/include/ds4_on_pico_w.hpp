@@ -1,7 +1,7 @@
 
 #ifndef PICO_W_FOR_DS4_HPP
 #define PICO_W_FOR_DS4_HPP
-#include "struct_ds4_for_pico_w.hpp"
+#include "struct_ds4_on_pico_w.hpp"
 
 class DS4forPicoW {
 public:

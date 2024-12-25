@@ -34,3 +34,4 @@
 # My projects
 build
 .vscode/*.json
+__*

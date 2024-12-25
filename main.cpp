@@ -1,5 +1,5 @@
 
-#include "ds4_for_pico_w.hpp"
+#include "ds4_on_pico_w.hpp"
 #include "pico/stdlib.h"
 
 #include <algorithm>
@@ -13,6 +13,7 @@ int main()
     // SETUP
     ////////////////////////////////////////////
     stdio_init_all();
+    sleep_ms(5000);
     controller.setup();
     do {
         printf("Starting inquiry scan..\n");
@@ -24,7 +25,7 @@ int main()
     ////////////////////////////////////////////
     bool flag_can_use = false;
     while (loop_contents) {
-        //tight_loop_contents();
+        // tight_loop_contents();
         if (controller.is_use()) {
             flag_can_use       = true;
             bt_hid_state state = controller.get_state();
