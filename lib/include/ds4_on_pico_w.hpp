@@ -11,7 +11,7 @@ public:
     void setup(bool blink_led = true);
     bool scan(int timeout_ms = 3000);
     bool is_use();
-    bt_hid_state get_state();
+    DualShock4_state get_state();
 
 private:
     bool _flag_setup          = false;

@@ -11,46 +11,48 @@
 #define STRUCT_DS4_FOR_PICO_W_HPP
 #include <stdint.h>
 
-struct controller_state {
+struct DualShock4_state {
     // Directional buttons
-    uint16_t directional = 0;
+    uint16_t hat;
     // Share button
-    bool share = false;
+    bool share;
     // Options button
-    bool options = false;
+    bool options;
     // PS button
-    bool ps = false;
+    bool ps;
 
     // Action Buttons
-    bool triangle = false;
-    bool square   = false;
-    bool circle   = false;
-    bool cross    = false;
+    bool triangle;
+    bool square;
+    bool circle;
+    bool cross;
 
     // Touch pad/Touch pad button
     //  To use the touch pad button, simply press the touch pad.
-    uint8_t tpx = 0;
-    uint8_t tpy = 0;
-    bool touch  = false;
+    bool touch;
+    uint16_t touch_x;
+    uint16_t touch_y;
 
     // Top left button
-    bool l1 = false;
-    uint8_t l2;
+    bool l1;
+    bool l2;
+    uint16_t l2_value;
     // Top Right button
-    bool r1 = false;
-    uint8_t r2;
+    bool r1;
+    bool r2;
+    uint16_t r2_value;
 
     // Left stick/L3 button
     //    Press on the stick to use it as the R3 button.
-    uint8_t rsx;
-    uint8_t rsy;
-    bool r3 = false;
+    bool l3;
+    uint16_t l3_x;
+    uint16_t l3_y;
 
     // Right stick / R3 button
     //    Press on the stick to use it as the L3 button.
-    uint8_t lsx;
-    uint8_t lsy;
-    bool l3 = false;
+    bool r3;
+    uint16_t r3_x;
+    uint16_t r3_y;
 
     // Gyro sensor
     uint16_t gyro_x;
@@ -63,7 +65,7 @@ struct controller_state {
     uint16_t accel_z;
 
     // Battery level
-    uint8_t battery;
+    uint16_t battery;
 
     // Temperature
     uint16_t temperature;
@@ -72,33 +74,7 @@ struct controller_state {
     uint16_t timestamp;
 
     // Status
-    uint8_t status[2];
-
-    // Padding
-    uint8_t pad;
-    uint8_t pad2;
-    uint8_t pad3;
-
-    // Hat
-    uint8_t hat;
-};
-
-struct bt_hid_state {
-    uint16_t buttons;
-    uint8_t lx;
-    uint8_t ly;
-    uint8_t rx;
-    uint8_t ry;
-    uint8_t l2;
-    uint8_t r2;
-    uint8_t hat;
-    uint8_t pad;
-    uint8_t pad2;
-    uint8_t pad3;
-    uint16_t temperature;
-    uint16_t gyro[3];
-    uint16_t accel[3];
-    uint8_t status[2];
+    bool connected;
 };
 
 #endif // STRUCT_DS4_HPP

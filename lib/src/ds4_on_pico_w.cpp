@@ -57,15 +57,40 @@ enum STATE
     ACTIVE
 };
 
-const struct bt_hid_state default_state = {
-    .buttons = 0,
-    .lx      = 0x80,
-    .ly      = 0x80,
-    .rx      = 0x80,
-    .ry      = 0x80,
-    .l2      = 0x80,
-    .r2      = 0x80,
-    .hat     = 0x8,
+const struct DualShock4_state default_state = {
+    .hat         = 0x8,
+    .share       = false,
+    .options     = false,
+    .ps          = false,
+    .triangle    = false,
+    .square      = false,
+    .circle      = false,
+    .cross       = false,
+    .touch       = false,
+    .pad_x       = 0x00,
+    .pad_y       = 0x00,
+    .l1          = false,
+    .l2          = false,
+    .l2_value    = 0x00,
+    .r1          = false,
+    .r2          = false,
+    .r2_value    = 0x00,
+    .l3          = false,
+    .l3_x        = 0x00,
+    .l3_y        = 0x00,
+    .r3          = false,
+    .r3_x        = 0x00,
+    .r3_y        = 0x00,
+    .gyro_x      = 0x00,
+    .gyro_y      = 0x00,
+    .gyro_z      = 0x00,
+    .accel_x     = 0x00,
+    .accel_y     = 0x00,
+    .accel_z     = 0x00,
+    .battery     = 0x00,
+    .temperature = 0x00,
+    .timestamp   = 0x00,
+    .connected   = false,
 };
 
 struct __attribute__((packed)) input_report_17 {
@@ -91,7 +116,7 @@ struct __attribute__((packed)) input_report_17 {
 // Variables
 ///////////////////////////////////////////////////////
 #pragma region Ds4forPicoW_Variables
-struct bt_hid_state latest;
+struct DualShock4_state latest;
 static hid_protocol_mode_t hid_host_report_mode = HID_PROTOCOL_MODE_REPORT;
 static bool hid_host_descriptor_available       = false;
 static uint16_t hid_host_cid                    = 0;
@@ -104,7 +129,7 @@ static btstack_packet_callback_registration_t hci_event_callback_registration;
 static char *remote_addr_string;
 
 /////////////////
-struct bt_hid_state hid_state;
+struct DualShock4_state hid_state;
 static bool hid_can_use = false;
 
 int deviceCount = 0;
@@ -311,8 +336,6 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
 
 static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_t packet_len)
 {
-    static struct bt_hid_state last_state = { 0 };
-
     // Only interested in report_id 0x11
     if (packet_len < sizeof(struct input_report_17) + 1) {
         return;
@@ -328,25 +351,46 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
 
     struct input_report_17 *report = (struct input_report_17 *)&packet[1];
 
-    // Note: This assumes that we're protected by async_context's
-    // single-threaded-ness
-    latest = (struct bt_hid_state){
-        // Somewhat arbitrary packing of the buttons into a single 16-bit word
-        .buttons = (uint16_t)(((report->buttons[0] & 0xf0u) << 8) | ((report->buttons[2] & 0x3u) << 8) | (report->buttons[1])),
-        .lx      = report->lx,
-        .ly      = report->ly,
-        .rx      = report->rx,
-        .ry      = report->ry,
-        .l2      = report->l2,
-        .r2      = report->r2,
-        .hat     = (uint8_t)(report->buttons[0] & 0xfu),
+    // Note: This assumes that we're protected by async_context's single-threaded-ness
+    // TODO: Parse out battery, touchpad, six axis, timestamp, temperature Sensors will also need calibration
+    latest = (struct DualShock4_state){
+        .hat         = (uint8_t)(report->buttons[0] & 0xFu),
+        .share       = (bool)(report->buttons[1] & 0x10u),
+        .options     = (bool)(report->buttons[1] & 0x20u),
+        .ps          = (bool)(report->buttons[2] & 0x01u),
+        .triangle    = (bool)(report->buttons[0] & 0x80u),
+        .square      = (bool)(report->buttons[0] & 0x10u),
+        .circle      = (bool)(report->buttons[0] & 0x40u),
+        .cross       = (bool)(report->buttons[0] & 0x20u),
+        .touch       = (bool)(report->buttons[2] & 0x02u),
+        .touch_x     = report->pad2[0], // TODO:
+        .touch_y     = report->pad2[1], // TODO:
+        .l1          = (bool)(report->buttons[1] & 0x01u),
+        .l2          = (bool)(report->buttons[1] & 0x04u),
+        .l2_value    = report->l2,
+        .r1          = (bool)(report->buttons[1] & 0x02u),
+        .r2          = (bool)(report->buttons[1] & 0x08u),
+        .r2_value    = report->r2,
+        .l3          = (bool)(report->buttons[1] & 0x40u),
+        .l3_x        = report->lx,
+        .l3_y        = report->ly,
+        .r3          = (bool)(report->buttons[1] & 0x80u),
+        .r3_x        = report->rx,
+        .r3_y        = report->ry,
+        .gyro_x      = report->gyro[0],
+        .gyro_y      = report->gyro[1],
+        .gyro_z      = report->gyro[2],
+        .accel_x     = report->accel[0],
+        .accel_y     = report->accel[1],
+        .accel_z     = report->accel[2],
+        .battery     = report->status[2],
+        .temperature = report->temperature,
+        .timestamp   = report->timestamp,
+        .connected   = hid_can_use,
     };
-
-    // TODO: Parse out battery, touchpad, six axis, timestamp, temperature(?!)
-    // Sensors will also need calibration
 }
 
-bool func_bt_hid_get_latest(struct bt_hid_state *dst)
+bool func_bt_hid_get_latest(struct DualShock4_state *dst)
 {
     if (true == hid_can_use) {
         async_context_t *context = cyw43_arch_async_context();
@@ -659,7 +703,7 @@ bool DS4forPicoW::is_use()
     return func_bt_hid_get_latest(&hid_state);
 }
 
-bt_hid_state DS4forPicoW::get_state()
+DualShock4_state DS4forPicoW::get_state()
 {
     return hid_state;
 }
