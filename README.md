@@ -56,6 +56,9 @@ int your_function()
 | メニューボタン       | bool     | share              | PADの左側にあるメニューボタン                                  |
 | ^                    | bool     | options            | PADの右側にあるメニューボタン                                  |
 | ^                    | bool     | ps                 | PADの下側にあるメニューボタン                                  |
+| ^                    | bool     | fn1                | Fn1 ボタン : △□○×ボタンは反応しなくなります                    |
+| ^                    | bool     | fn2                | Fn2 ボタン : △□○×ボタンは反応しなくなります                    |
+| ^                    | bool     | mute               | ミュートボタン                                                 |
 | アクション ボタン    | bool     | triangle           | △ ボタン                                                       |
 | ^                    | bool     | square             | □ ボタン                                                       |
 | ^                    | bool     | circle             | ○ ボタン                                                       |

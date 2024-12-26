@@ -40,6 +40,9 @@ struct DualShock4_state {
     bool square;
     bool circle;
     bool cross;
+    bool fn1;
+    bool fn2;
+    bool mute;
 
     // Touch pad/Touch pad button
     //  To use the touch pad button, simply press the touch pad.
@@ -106,11 +109,10 @@ struct DualShock4_state {
     bool connected_phone;
 
     // Timestamp
-    uint16_t timestamp;
-    uint8_t report_counter;
+    uint32_t timestamp;
 
     // Status
     bool linked;
 };
 
-#endif // STRUCT_DS4_HPP
+#endif // STRUCT_DS4_FOR_PICO_W_HPP

@@ -73,8 +73,11 @@ const struct DualShock4_state default_state = {
     .square    = false,
     .circle    = false,
     .cross     = false,
-    .touch     = false,
+    .fn1       = false,
+    .fn2       = false,
+    .mute      = false,
 
+    .touch             = false,
     .touch_packet_size = 0x00,
     .touch_counter     = 0x00,
 
@@ -122,7 +125,6 @@ const struct DualShock4_state default_state = {
     .connected_mic   = false,
     .connected_phone = false,
     .timestamp       = 0x00,
-    .report_counter  = 0x00,
     .linked          = false,
 };
 
@@ -148,25 +150,29 @@ struct __attribute__((packed)) input_report_ds4 {
     uint8_t pad2b[4];
 };
 struct __attribute__((packed)) input_report_ds5 {
-    uint8_t dummy0[2];
-    uint8_t report_id;   // byte[0]
-    uint8_t lx, ly;      // byte[1], byte[2]
-    uint8_t rx, ry;      // byte[3], byte[4]
-    uint8_t buttons[3];  // byte[5], byte[6], byte[7]
-    uint8_t l2, r2;      // byte[8], byte[9]
-    uint16_t timestamp;  // byte[10-11]
-    uint8_t battery;     // byte[12]
-    int16_t accel[3];    // byte[13-14], byte[15-16], byte[17-18]
-    int16_t gyro[3];     // byte[19-20], byte[21-22], byte[23-24]
-    uint8_t dummy1[5];   // byte[25], byte[26], byte[27], byte[28], byte[29]
-    uint8_t status;      // byte[30]
-    uint8_t dummy2[2];   // byte[31], byte[32]
-    uint8_t pad_size;    // byte[33]
-    uint8_t pad_counter; // byte[34]
+    uint8_t report_id;
+    uint8_t dummy0;
+    uint8_t lx, ly;
+    uint8_t rx, ry;
+    uint8_t l2, r2;
+    uint8_t dummy1;
+    uint8_t buttons[4];
+    uint8_t dummy2[4];
+    int16_t accel[3];
+    int16_t gyro[3];
+    uint32_t timestamp;
+    uint8_t timestamp_a;
     uint8_t pad1a[4];
     uint8_t pad2a[4];
-    uint8_t pad1b[4];
-    uint8_t pad2b[4];
+    uint8_t pad_counter;
+
+    ///////////////////
+    uint8_t battery;
+    uint8_t dummy4[11];
+    uint8_t status[2];
+    uint8_t dummy5[12];
+
+    /////////////////////////
 };
 #pragma endregion
 
@@ -430,6 +436,9 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
             .square    = (bool)(report->buttons[0] & 0x10u),
             .circle    = (bool)(report->buttons[0] & 0x40u),
             .cross     = (bool)(report->buttons[0] & 0x20u),
+            .fn1       = false,
+            .fn2       = false,
+            .mute      = false,
             .touch     = (bool)(report->buttons[2] & 0x02u),
 
             .touch_packet_size = report->pad_size,
@@ -478,8 +487,7 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
             .connected_usb   = (report->status & 0x10u) > 0 ? true : false,
             .connected_mic   = (report->status & 0x20u) > 0 ? true : false,
             .connected_phone = (report->status & 0x40u) > 0 ? true : false,
-            .timestamp       = (uint16_t)report->timestamp,
-            .report_counter  = (uint8_t)((report->buttons[2] & 0xFCu) >> 2),
+            .timestamp       = (uint32_t)report->timestamp,
             .linked          = hid_can_use,
         };
     } else if (DEVICE_DS5 == device_type) {
@@ -505,9 +513,12 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
             .square    = (bool)(report->buttons[0] & 0x10u),
             .circle    = (bool)(report->buttons[0] & 0x40u),
             .cross     = (bool)(report->buttons[0] & 0x20u),
-            .touch     = (bool)(report->buttons[2] & 0x02u),
+            .fn1       = (bool)(report->buttons[2] & 0x10u),
+            .fn2       = (bool)(report->buttons[2] & 0x20u),
+            .mute      = (bool)(report->buttons[2] & 0x04u),
 
-            .touch_packet_size = report->pad_size,
+            .touch             = (bool)(report->buttons[2] & 0x02u),
+            .touch_packet_size = 0, // report->pad_size,
             .touch_counter     = report->pad_counter,
 
             .touch_f1_a_active  = !(bool)(report->pad1a[0] & 0x80u),
@@ -520,15 +531,15 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
             .touch_f2_a_x       = (uint16_t)((report->pad2a[1]) | ((report->pad2a[2] & 0x0Fu) << 8)),
             .touch_f2_a_y       = (uint16_t)(((uint16_t)(report->pad2a[3]) << 4) | ((report->pad2a[2] & 0xF0u) >> 4)),
 
-            .touch_f1_b_active  = !(bool)(report->pad1b[0] & 0x80u),
-            .touch_f1_b_counter = (uint8_t)(report->pad1b[0] & 0x7Fu),
-            .touch_f1_b_x       = (uint16_t)((report->pad1b[1]) | ((report->pad1b[2] & 0x0Fu) << 8)),
-            .touch_f1_b_y       = (uint16_t)(((uint16_t)(report->pad1b[3]) << 4) | ((report->pad1b[2] & 0xF0u) >> 4)),
+            .touch_f1_b_active  = false,
+            .touch_f1_b_counter = 0,
+            .touch_f1_b_x       = 0,
+            .touch_f1_b_y       = 0,
 
-            .touch_f2_b_active  = !(bool)(report->pad2b[0] & 0x80u),
-            .touch_f2_b_counter = (uint8_t)(report->pad2b[0] & 0x7Fu),
-            .touch_f2_b_x       = (uint16_t)((report->pad2b[1]) | ((report->pad2b[2] & 0x0Fu) << 8)),
-            .touch_f2_b_y       = (uint16_t)(((uint16_t)(report->pad2b[3]) << 4) | ((report->pad2b[2] & 0xF0u) >> 4)),
+            .touch_f2_b_active  = false,
+            .touch_f2_b_counter = 0,
+            .touch_f2_b_x       = 0,
+            .touch_f2_b_y       = 0,
 
             .l1              = (bool)(report->buttons[1] & 0x01u),
             .l2              = (bool)(report->buttons[1] & 0x04u),
@@ -549,12 +560,11 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
             .accel_y         = (int16_t)report->accel[1],
             .accel_z         = (int16_t)report->accel[2],
             .battery         = report->battery,
-            .battery_level   = (uint8_t)(report->status & 0x0Fu),
-            .connected_usb   = (report->status & 0x10u) > 0 ? true : false,
-            .connected_mic   = (report->status & 0x20u) > 0 ? true : false,
-            .connected_phone = (report->status & 0x40u) > 0 ? true : false,
-            .timestamp       = (uint16_t)report->timestamp,
-            .report_counter  = (uint8_t)((report->buttons[2] & 0xFCu) >> 2),
+            .battery_level   = (uint8_t)(report->battery & 0x0Fu),
+            .connected_usb   = (report->status[0] & 0x10u) > 0 ? true : false,
+            .connected_mic   = (report->status[0] & 0x02u) > 0 ? true : false,
+            .connected_phone = (report->status[0] & 0x01u) > 0 ? true : false,
+            .timestamp       = (uint32_t)report->timestamp,
             .linked          = hid_can_use,
         };
     }

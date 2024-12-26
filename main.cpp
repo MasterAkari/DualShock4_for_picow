@@ -51,8 +51,12 @@ int main()
             printf("B[%s] ", state.circle ? "x" : " ");
             printf("X[%s] ", state.square ? "x" : " ");
             printf("Y[%s] ", state.triangle ? "x" : " ");
+
+            printf("MUTE[%s] ", state.mute ? "x" : " ");
+            printf("FN1[%s] ", state.fn1 ? "x" : " ");
+            printf("FN2[%s] ", state.fn2 ? "x" : " ");
 #else
-            printf("BT[%s%s%s%s%s%s%s%s] ", //
+            printf("BT[%s%s%s%s%s%s%s%s%s%s%s] ", //
                    state.share ? "S" : " ",
                    state.options ? "O" : " ",
                    state.ps ? "P" : " ",
@@ -60,7 +64,10 @@ int main()
                    state.circle ? "B" : " ",
                    state.square ? "X" : " ",
                    state.triangle ? "Y" : " ",
-                   state.touch ? "T" : " ");
+                   state.touch ? "T" : " ",
+                   state.mute ? "M" : " ",
+                   state.fn1 ? "1" : " ",
+                   state.fn2 ? "2" : " ");
 #endif
 #if 0
             printf("Left[%s/%s(%03d)/%s(%03d,%03d)] ", state.l1 ? "x" : " ", state.l2 ? "x" : " ", state.l2_value, state.l3 ? "x" : " ", state.l3_x, state.l3_y);
@@ -82,7 +89,7 @@ int main()
             printf("%s", state.linked ? " Linked " : "Unlinked");
             printf("in[%s/%s/%s] ", state.connected_usb ? "USB" : "   ", state.connected_mic ? "MIC" : "   ", state.connected_phone ? "Phone" : "     ");
             printf("ID.%02d ", state.report_id);
-            printf("TS[%05d/%02d] ", state.timestamp, state.report_counter);
+            printf("TS[%05d] ", state.timestamp);
 
             printf("\n");
 
