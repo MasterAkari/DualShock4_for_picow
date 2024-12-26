@@ -25,7 +25,7 @@
 #define INFO_DS4_REPORTS 1
 #endif
 #ifndef DEBUG_DS4_REPORTS
-#define DEBUG_DS4_REPORTS 1
+#define DEBUG_DS4_REPORTS 0
 #endif
 #ifndef VERBOSE_DS4_REPORTS
 #define VERBOSE_DS4_REPORTS 0
@@ -56,59 +56,117 @@ enum STATE
     INIT,
     ACTIVE
 };
-
-const struct DualShock4_state default_state = {
-    .hat         = 0x8,
-    .share       = false,
-    .options     = false,
-    .ps          = false,
-    .triangle    = false,
-    .square      = false,
-    .circle      = false,
-    .cross       = false,
-    .touch       = false,
-    .touch_x     = 0x00,
-    .touch_y     = 0x00,
-    .l1          = false,
-    .l2          = false,
-    .l2_value    = 0x00,
-    .r1          = false,
-    .r2          = false,
-    .r2_value    = 0x00,
-    .l3          = false,
-    .l3_x        = 0x00,
-    .l3_y        = 0x00,
-    .r3          = false,
-    .r3_x        = 0x00,
-    .r3_y        = 0x00,
-    .gyro_x      = 0x00,
-    .gyro_y      = 0x00,
-    .gyro_z      = 0x00,
-    .accel_x     = 0x00,
-    .accel_y     = 0x00,
-    .accel_z     = 0x00,
-    .battery     = 0x00,
-    .temperature = 0x00,
-    .timestamp   = 0x00,
-    .connected   = false,
+enum DEVICE_TYPE
+{
+    DEVICE_UNKNOWN,
+    DEVICE_DS4,
+    DEVICE_DS5
 };
 
-struct __attribute__((packed)) input_report_17 {
-    uint8_t report_id;
-    uint8_t pad[2];
+const struct DualShock4_state default_state = {
+    .report_id = 0x0,
+    .hat       = (hat_t)0x8,
+    .share     = false,
+    .options   = false,
+    .ps        = false,
+    .triangle  = false,
+    .square    = false,
+    .circle    = false,
+    .cross     = false,
+    .touch     = false,
 
-    uint8_t lx, ly;
-    uint8_t rx, ry;
-    uint8_t buttons[3];
-    uint8_t l2, r2;
+    .touch_packet_size = 0x00,
+    .touch_counter     = 0x00,
 
-    uint16_t timestamp;
-    uint16_t temperature;
-    uint16_t gyro[3];
-    uint16_t accel[3];
-    uint8_t pad2[5];
-    uint8_t status[2];
-    uint8_t pad3;
+    .touch_f1_a_active  = false,
+    .touch_f1_a_counter = 0x00,
+    .touch_f1_a_x       = 0x00,
+    .touch_f1_a_y       = 0x00,
+
+    .touch_f2_a_active  = false,
+    .touch_f2_a_counter = 0x00,
+    .touch_f2_a_x       = 0x00,
+    .touch_f2_a_y       = 0x00,
+
+    .touch_f1_b_active  = false,
+    .touch_f1_b_counter = 0x00,
+    .touch_f1_b_x       = 0x00,
+    .touch_f1_b_y       = 0x00,
+
+    .touch_f2_b_active  = false,
+    .touch_f2_b_counter = 0x00,
+    .touch_f2_b_x       = 0x00,
+    .touch_f2_b_y       = 0x00,
+
+    .l1              = false,
+    .l2              = false,
+    .l2_value        = 0x00,
+    .r1              = false,
+    .r2              = false,
+    .r2_value        = 0x00,
+    .l3              = false,
+    .l3_x            = 0x00,
+    .l3_y            = 0x00,
+    .r3              = false,
+    .r3_x            = 0x00,
+    .r3_y            = 0x00,
+    .gyro_x          = 0x00,
+    .gyro_y          = 0x00,
+    .gyro_z          = 0x00,
+    .accel_x         = 0x00,
+    .accel_y         = 0x00,
+    .accel_z         = 0x00,
+    .battery         = 0x00,
+    .battery_level   = 0x00,
+    .connected_usb   = false,
+    .connected_mic   = false,
+    .connected_phone = false,
+    .timestamp       = 0x00,
+    .report_counter  = 0x00,
+    .linked          = false,
+};
+
+struct __attribute__((packed)) input_report_ds4 {
+    uint8_t dummy0[2];
+    uint8_t report_id;   // byte[0]
+    uint8_t lx, ly;      // byte[1], byte[2]
+    uint8_t rx, ry;      // byte[3], byte[4]
+    uint8_t buttons[3];  // byte[5], byte[6], byte[7]
+    uint8_t l2, r2;      // byte[8], byte[9]
+    uint16_t timestamp;  // byte[10-11]
+    uint8_t battery;     // byte[12]
+    int16_t accel[3];    // byte[13-14], byte[15-16], byte[17-18]
+    int16_t gyro[3];     // byte[19-20], byte[21-22], byte[23-24]
+    uint8_t dummy1[5];   // byte[25], byte[26], byte[27], byte[28], byte[29]
+    uint8_t status;      // byte[30]
+    uint8_t dummy2[2];   // byte[31], byte[32]
+    uint8_t pad_size;    // byte[33]
+    uint8_t pad_counter; // byte[34]
+    uint8_t pad1a[4];
+    uint8_t pad2a[4];
+    uint8_t pad1b[4];
+    uint8_t pad2b[4];
+};
+struct __attribute__((packed)) input_report_ds5 {
+    uint8_t dummy0[2];
+    uint8_t report_id;   // byte[0]
+    uint8_t lx, ly;      // byte[1], byte[2]
+    uint8_t rx, ry;      // byte[3], byte[4]
+    uint8_t buttons[3];  // byte[5], byte[6], byte[7]
+    uint8_t l2, r2;      // byte[8], byte[9]
+    uint16_t timestamp;  // byte[10-11]
+    uint8_t battery;     // byte[12]
+    int16_t accel[3];    // byte[13-14], byte[15-16], byte[17-18]
+    int16_t gyro[3];     // byte[19-20], byte[21-22], byte[23-24]
+    uint8_t dummy1[5];   // byte[25], byte[26], byte[27], byte[28], byte[29]
+    uint8_t status;      // byte[30]
+    uint8_t dummy2[2];   // byte[31], byte[32]
+    uint8_t pad_size;    // byte[33]
+    uint8_t pad_counter; // byte[34]
+    uint8_t pad1a[4];
+    uint8_t pad2a[4];
+    uint8_t pad1b[4];
+    uint8_t pad2b[4];
 };
 #pragma endregion
 
@@ -129,12 +187,13 @@ static btstack_packet_callback_registration_t hci_event_callback_registration;
 static char *remote_addr_string;
 
 /////////////////
-struct DualShock4_state hid_state;
+struct DualShock4_state ds4_state;
 static bool hid_can_use = false;
 
 int deviceCount = 0;
 struct device devices[MAX_DEVICES];
-enum STATE state = INIT;
+enum STATE state             = INIT;
+enum DEVICE_TYPE device_type = DEVICE_UNKNOWN;
 #pragma endregion
 
 ///////////////////////////////////////////////////////
@@ -254,7 +313,7 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                     // print info
                     char *mac_addr = bd_addr_to_str(addr);
 #if DEBUG_DS4_REPORTS
-                    printf("[%02X] Device found: %s ", GAP_EVENT_INQUIRY_RESULT, mac_addr);
+                    printf("[%02X] Device found: [%s] ", GAP_EVENT_INQUIRY_RESULT, mac_addr);
                     printf("with COD[0x%06X], ", (unsigned int)gap_event_inquiry_result_get_class_of_device(packet));
                     printf("pageScan[%d], ", devices[deviceCount].pageScanRepetitionMode);
                     printf("clock offset[0x%04X]", devices[deviceCount].clockOffset);
@@ -275,7 +334,11 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                         devices[deviceCount].state = REMOTE_NAME_FETCHED;
 
                         if (strcmp(name_buffer, "Wireless Controller") == 0) {
-                            mac = mac_addr;
+                            mac         = mac_addr;
+                            device_type = DEVICE_DS4;
+                        } else if (strcmp(name_buffer, "DualSense Edge Wireless Controller") == 0) {
+                            mac         = mac_addr;
+                            device_type = DEVICE_DS5;
                         }
                     } else {
                         devices[deviceCount].state = REMOTE_NAME_REQUEST;
@@ -301,12 +364,16 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                     if (index >= 0) {
                         if (packet[2] == 0) {
 #if INFO_DS4_REPORTS
-                            printf("[%02X] Device found: Name: '%s'\n", HCI_EVENT_REMOTE_NAME_REQUEST_COMPLETE, &packet[9]);
+                            printf("[%02X] Device Name: '%s'\n", HCI_EVENT_REMOTE_NAME_REQUEST_COMPLETE, &packet[9]);
 #endif
                             devices[index].state = REMOTE_NAME_FETCHED;
 
                             if (strcmp((char const *)&packet[9], "Wireless Controller") == 0) {
-                                mac = bd_addr_to_str(addr);
+                                mac         = bd_addr_to_str(addr);
+                                device_type = DEVICE_DS5;
+                            } else if (strcmp((char const *)&packet[9], "DualSense Edge Wireless Controller") == 0) {
+                                mac         = bd_addr_to_str(addr);
+                                device_type = DEVICE_DS5;
                             }
                         } else {
 #if ERROR_DS4_REPORTS
@@ -337,57 +404,160 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
 static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_t packet_len)
 {
     // Only interested in report_id 0x11
-    if (packet_len < sizeof(struct input_report_17) + 1) {
-        return;
-    }
 
-    if ((packet[0] != 0xa1) || (packet[1] != 0x11)) {
-        return;
-    }
+    if (DEVICE_DS4 == device_type) {
+        if ((packet[0] != 0xa1) || (packet[1] != 0x11)) {
+            return;
+        }
+        if (packet_len < sizeof(struct input_report_ds4) + 1) {
+            return;
+        }
 
 #if VERBOSE_DS4_REPORTS
-    printf_hexdump(packet, packet_len);
+        printf_hexdump(packet, packet_len);
 #endif
 
-    struct input_report_17 *report = (struct input_report_17 *)&packet[1];
+        struct input_report_ds4 *report = (struct input_report_ds4 *)&packet[1];
 
-    // Note: This assumes that we're protected by async_context's single-threaded-ness
-    // TODO: Parse out battery, touchpad, six axis, timestamp, temperature Sensors will also need calibration
-    latest = (struct DualShock4_state){
-        .hat         = (uint8_t)(report->buttons[0] & 0xFu),
-        .share       = (bool)(report->buttons[1] & 0x10u),
-        .options     = (bool)(report->buttons[1] & 0x20u),
-        .ps          = (bool)(report->buttons[2] & 0x01u),
-        .triangle    = (bool)(report->buttons[0] & 0x80u),
-        .square      = (bool)(report->buttons[0] & 0x10u),
-        .circle      = (bool)(report->buttons[0] & 0x40u),
-        .cross       = (bool)(report->buttons[0] & 0x20u),
-        .touch       = (bool)(report->buttons[2] & 0x02u),
-        .touch_x     = report->pad2[0], // TODO:
-        .touch_y     = report->pad2[1], // TODO:
-        .l1          = (bool)(report->buttons[1] & 0x01u),
-        .l2          = (bool)(report->buttons[1] & 0x04u),
-        .l2_value    = report->l2,
-        .r1          = (bool)(report->buttons[1] & 0x02u),
-        .r2          = (bool)(report->buttons[1] & 0x08u),
-        .r2_value    = report->r2,
-        .l3          = (bool)(report->buttons[1] & 0x40u),
-        .l3_x        = report->lx,
-        .l3_y        = report->ly,
-        .r3          = (bool)(report->buttons[1] & 0x80u),
-        .r3_x        = report->rx,
-        .r3_y        = report->ry,
-        .gyro_x      = report->gyro[0],
-        .gyro_y      = report->gyro[1],
-        .gyro_z      = report->gyro[2],
-        .accel_x     = report->accel[0],
-        .accel_y     = report->accel[1],
-        .accel_z     = report->accel[2],
-        .battery     = report->status[2],
-        .temperature = report->temperature,
-        .timestamp   = report->timestamp,
-        .connected   = hid_can_use,
-    };
+        // Note: This assumes that we're protected by async_context's single-threaded-ness
+        latest = (struct DualShock4_state){
+            .report_id = (uint8_t)(report->report_id),
+            .hat       = (hat_t)(report->buttons[0] & 0x0Fu),
+            .share     = (bool)(report->buttons[1] & 0x10u),
+            .options   = (bool)(report->buttons[1] & 0x20u),
+            .ps        = (bool)(report->buttons[2] & 0x01u),
+            .triangle  = (bool)(report->buttons[0] & 0x80u),
+            .square    = (bool)(report->buttons[0] & 0x10u),
+            .circle    = (bool)(report->buttons[0] & 0x40u),
+            .cross     = (bool)(report->buttons[0] & 0x20u),
+            .touch     = (bool)(report->buttons[2] & 0x02u),
+
+            .touch_packet_size = report->pad_size,
+            .touch_counter     = report->pad_counter,
+
+            .touch_f1_a_active  = !(bool)(report->pad1a[0] & 0x80u),
+            .touch_f1_a_counter = (uint8_t)(report->pad1a[0] & 0x7Fu),
+            .touch_f1_a_x       = (uint16_t)((report->pad1a[1]) | ((report->pad1a[2] & 0x0Fu) << 8)),
+            .touch_f1_a_y       = (uint16_t)(((uint16_t)(report->pad1a[3]) << 4) | ((report->pad1a[2] & 0xF0u) >> 4)),
+
+            .touch_f2_a_active  = !(bool)(report->pad2a[0] & 0x80u),
+            .touch_f2_a_counter = (uint8_t)(report->pad2a[0] & 0x7Fu),
+            .touch_f2_a_x       = (uint16_t)((report->pad2a[1]) | ((report->pad2a[2] & 0x0Fu) << 8)),
+            .touch_f2_a_y       = (uint16_t)(((uint16_t)(report->pad2a[3]) << 4) | ((report->pad2a[2] & 0xF0u) >> 4)),
+
+            .touch_f1_b_active  = !(bool)(report->pad1b[0] & 0x80u),
+            .touch_f1_b_counter = (uint8_t)(report->pad1b[0] & 0x7Fu),
+            .touch_f1_b_x       = (uint16_t)((report->pad1b[1]) | ((report->pad1b[2] & 0x0Fu) << 8)),
+            .touch_f1_b_y       = (uint16_t)(((uint16_t)(report->pad1b[3]) << 4) | ((report->pad1b[2] & 0xF0u) >> 4)),
+
+            .touch_f2_b_active  = !(bool)(report->pad2b[0] & 0x80u),
+            .touch_f2_b_counter = (uint8_t)(report->pad2b[0] & 0x7Fu),
+            .touch_f2_b_x       = (uint16_t)((report->pad2b[1]) | ((report->pad2b[2] & 0x0Fu) << 8)),
+            .touch_f2_b_y       = (uint16_t)(((uint16_t)(report->pad2b[3]) << 4) | ((report->pad2b[2] & 0xF0u) >> 4)),
+
+            .l1              = (bool)(report->buttons[1] & 0x01u),
+            .l2              = (bool)(report->buttons[1] & 0x04u),
+            .l2_value        = report->l2,
+            .r1              = (bool)(report->buttons[1] & 0x02u),
+            .r2              = (bool)(report->buttons[1] & 0x08u),
+            .r2_value        = report->r2,
+            .l3              = (bool)(report->buttons[1] & 0x40u),
+            .l3_x            = report->lx,
+            .l3_y            = report->ly,
+            .r3              = (bool)(report->buttons[1] & 0x80u),
+            .r3_x            = report->rx,
+            .r3_y            = report->ry,
+            .gyro_x          = (int16_t)report->gyro[0],
+            .gyro_y          = (int16_t)report->gyro[1],
+            .gyro_z          = (int16_t)report->gyro[2],
+            .accel_x         = (int16_t)report->accel[0],
+            .accel_y         = (int16_t)report->accel[1],
+            .accel_z         = (int16_t)report->accel[2],
+            .battery         = report->battery,
+            .battery_level   = (uint8_t)(report->status & 0x0Fu),
+            .connected_usb   = (report->status & 0x10u) > 0 ? true : false,
+            .connected_mic   = (report->status & 0x20u) > 0 ? true : false,
+            .connected_phone = (report->status & 0x40u) > 0 ? true : false,
+            .timestamp       = (uint16_t)report->timestamp,
+            .report_counter  = (uint8_t)((report->buttons[2] & 0xFCu) >> 2),
+            .linked          = hid_can_use,
+        };
+    } else if (DEVICE_DS5 == device_type) {
+        if ((packet[0] != 0xa1) || (packet[1] != 0x31)) {
+            return;
+        }
+        if (packet_len < sizeof(struct input_report_ds5) + 1) {
+            return;
+        }
+#if VERBOSE_DS4_REPORTS
+        printf_hexdump(packet, packet_len);
+#endif
+        struct input_report_ds5 *report = (struct input_report_ds5 *)&packet[1];
+
+        // Note: This assumes that we're protected by async_context's single-threaded-ness
+        latest = (struct DualShock4_state){
+            .report_id = (uint8_t)(report->report_id),
+            .hat       = (hat_t)(report->buttons[0] & 0x0Fu),
+            .share     = (bool)(report->buttons[1] & 0x10u),
+            .options   = (bool)(report->buttons[1] & 0x20u),
+            .ps        = (bool)(report->buttons[2] & 0x01u),
+            .triangle  = (bool)(report->buttons[0] & 0x80u),
+            .square    = (bool)(report->buttons[0] & 0x10u),
+            .circle    = (bool)(report->buttons[0] & 0x40u),
+            .cross     = (bool)(report->buttons[0] & 0x20u),
+            .touch     = (bool)(report->buttons[2] & 0x02u),
+
+            .touch_packet_size = report->pad_size,
+            .touch_counter     = report->pad_counter,
+
+            .touch_f1_a_active  = !(bool)(report->pad1a[0] & 0x80u),
+            .touch_f1_a_counter = (uint8_t)(report->pad1a[0] & 0x7Fu),
+            .touch_f1_a_x       = (uint16_t)((report->pad1a[1]) | ((report->pad1a[2] & 0x0Fu) << 8)),
+            .touch_f1_a_y       = (uint16_t)(((uint16_t)(report->pad1a[3]) << 4) | ((report->pad1a[2] & 0xF0u) >> 4)),
+
+            .touch_f2_a_active  = !(bool)(report->pad2a[0] & 0x80u),
+            .touch_f2_a_counter = (uint8_t)(report->pad2a[0] & 0x7Fu),
+            .touch_f2_a_x       = (uint16_t)((report->pad2a[1]) | ((report->pad2a[2] & 0x0Fu) << 8)),
+            .touch_f2_a_y       = (uint16_t)(((uint16_t)(report->pad2a[3]) << 4) | ((report->pad2a[2] & 0xF0u) >> 4)),
+
+            .touch_f1_b_active  = !(bool)(report->pad1b[0] & 0x80u),
+            .touch_f1_b_counter = (uint8_t)(report->pad1b[0] & 0x7Fu),
+            .touch_f1_b_x       = (uint16_t)((report->pad1b[1]) | ((report->pad1b[2] & 0x0Fu) << 8)),
+            .touch_f1_b_y       = (uint16_t)(((uint16_t)(report->pad1b[3]) << 4) | ((report->pad1b[2] & 0xF0u) >> 4)),
+
+            .touch_f2_b_active  = !(bool)(report->pad2b[0] & 0x80u),
+            .touch_f2_b_counter = (uint8_t)(report->pad2b[0] & 0x7Fu),
+            .touch_f2_b_x       = (uint16_t)((report->pad2b[1]) | ((report->pad2b[2] & 0x0Fu) << 8)),
+            .touch_f2_b_y       = (uint16_t)(((uint16_t)(report->pad2b[3]) << 4) | ((report->pad2b[2] & 0xF0u) >> 4)),
+
+            .l1              = (bool)(report->buttons[1] & 0x01u),
+            .l2              = (bool)(report->buttons[1] & 0x04u),
+            .l2_value        = report->l2,
+            .r1              = (bool)(report->buttons[1] & 0x02u),
+            .r2              = (bool)(report->buttons[1] & 0x08u),
+            .r2_value        = report->r2,
+            .l3              = (bool)(report->buttons[1] & 0x40u),
+            .l3_x            = report->lx,
+            .l3_y            = report->ly,
+            .r3              = (bool)(report->buttons[1] & 0x80u),
+            .r3_x            = report->rx,
+            .r3_y            = report->ry,
+            .gyro_x          = (int16_t)report->gyro[0],
+            .gyro_y          = (int16_t)report->gyro[1],
+            .gyro_z          = (int16_t)report->gyro[2],
+            .accel_x         = (int16_t)report->accel[0],
+            .accel_y         = (int16_t)report->accel[1],
+            .accel_z         = (int16_t)report->accel[2],
+            .battery         = report->battery,
+            .battery_level   = (uint8_t)(report->status & 0x0Fu),
+            .connected_usb   = (report->status & 0x10u) > 0 ? true : false,
+            .connected_mic   = (report->status & 0x20u) > 0 ? true : false,
+            .connected_phone = (report->status & 0x40u) > 0 ? true : false,
+            .timestamp       = (uint16_t)report->timestamp,
+            .report_counter  = (uint8_t)((report->buttons[2] & 0xFCu) >> 2),
+            .linked          = hid_can_use,
+        };
+    }
 }
 
 bool func_bt_hid_get_latest(struct DualShock4_state *dst)
@@ -589,7 +759,7 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
 #endif
                 } break;
                 default:
-#if ERROR_DS4_REPORTS
+#if DEBUG_DS4_REPORTS
                     printf("[%02X,--] Unknown HID subevent: 0x%X\n", HCI_EVENT_HID_META, hid_event);
 #endif
                     break;
@@ -666,6 +836,7 @@ void func_bt_hid_main()
 
 DS4forPicoW::DS4forPicoW()
 {
+    memcpy(&ds4_state, &default_state, sizeof(ds4_state));
 }
 DS4forPicoW::~DS4forPicoW()
 {
@@ -677,9 +848,9 @@ DS4forPicoW::~DS4forPicoW()
 void DS4forPicoW::setup(bool blink_led)
 {
     if (false == this->_flag_setup) {
-        g_flag_blink_led = blink_led;
-        multicore_launch_core1(func_bt_hid_main);
         this->_flag_setup = true;
+        g_flag_blink_led  = blink_led;
+        multicore_launch_core1(func_bt_hid_main);
     }
 }
 bool DS4forPicoW::scan(int timeout_ms)
@@ -688,7 +859,7 @@ bool DS4forPicoW::scan(int timeout_ms)
     int times    = timeout_ms / TIMEOUT_SPAN_MS;
 
     for (int i = 0; i < times; i++) {
-        if (true == is_use()) {
+        if (true == hid_can_use) {
             can_use = true;
             break;
         }
@@ -698,14 +869,10 @@ bool DS4forPicoW::scan(int timeout_ms)
     return can_use;
 }
 
-bool DS4forPicoW::is_use()
-{
-    return func_bt_hid_get_latest(&hid_state);
-}
-
 DualShock4_state DS4forPicoW::get_state()
 {
-    return hid_state;
+    memcpy(&ds4_state, &latest, sizeof(latest));
+    return ds4_state;
 }
 
 #pragma endregion

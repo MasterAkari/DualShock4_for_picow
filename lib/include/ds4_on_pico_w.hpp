@@ -10,7 +10,6 @@ public:
     ~DS4forPicoW();
     void setup(bool blink_led = true);
     bool scan(int timeout_ms = 3000);
-    bool is_use();
     DualShock4_state get_state();
 
 private:
