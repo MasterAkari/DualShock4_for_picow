@@ -17,7 +17,7 @@ add_subdirectory(DualShock4_on_picow/lib)
 
 # Add any user requested libraries
 target_link_libraries(DualShock4_on_picow
-    lib_ds4_on_pico
+        lib_ds4_on_pico
 )
 ```
 

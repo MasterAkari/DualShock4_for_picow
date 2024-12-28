@@ -376,7 +376,7 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
 
                             if (strcmp((char const *)&packet[9], "Wireless Controller") == 0) {
                                 mac         = bd_addr_to_str(addr);
-                                device_type = DEVICE_DS5;
+                                device_type = DEVICE_DS4;
                             } else if (strcmp((char const *)&packet[9], "DualSense Edge Wireless Controller") == 0) {
                                 mac         = bd_addr_to_str(addr);
                                 device_type = DEVICE_DS5;
