@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <stdio.h>
 
+#define LOG_HEADER "# [main]"
+
 int main()
 {
     DS4forPicoW controller;
@@ -15,25 +17,16 @@ int main()
     stdio_init_all();
     sleep_ms(5000);
     printf("======================\n[SETUP] DS4 on PicoW\n======================\n");
+    controller.setup((DS4forPicoW::config){ .blink_led = true, .mac_address = "" });
 
-    controller.setup();
     while (1) {
-        bool flag_can_use = false;
         do {
-            printf("Starting inquiry scan..\n");
-            loop_contents = controller.scan(3000);
+            printf("%s Starting inquiry scan..\n", LOG_HEADER);
+            loop_contents = controller.is_connected(3000);
             if (true == loop_contents) {
-                printf("DS4 found\n");
+                printf("%s Found Device\n", LOG_HEADER);
             }
         } while (false == loop_contents);
-
-        do {
-            DualShock4_state state = controller.get_state();
-            if (true == state.linked) {
-                flag_can_use = true;
-                break;
-            }
-        } while (false == flag_can_use);
 
         ////////////////////////////////////////////
         // LOOP
@@ -43,19 +36,6 @@ int main()
             tight_loop_contents();
             state = controller.get_state();
             printf("HAT[%01d] ", state.hat);
-#if 0
-            printf("SHA[%s] ", state.share ? "x" : " ");
-            printf("OPT[%s] ", state.options ? "x" : " ");
-            printf("PS[%s] ", state.ps ? "x" : " ");
-            printf("A[%s] ", state.cross ? "x" : " ");
-            printf("B[%s] ", state.circle ? "x" : " ");
-            printf("X[%s] ", state.square ? "x" : " ");
-            printf("Y[%s] ", state.triangle ? "x" : " ");
-
-            printf("MUTE[%s] ", state.mute ? "x" : " ");
-            printf("FN1[%s] ", state.fn1 ? "x" : " ");
-            printf("FN2[%s] ", state.fn2 ? "x" : " ");
-#else
             printf("BT[%s%s%s%s%s%s%s%s%s%s%s] ", //
                    state.share ? "S" : " ",
                    state.options ? "O" : " ",
@@ -68,14 +48,10 @@ int main()
                    state.mute ? "M" : " ",
                    state.fn1 ? "1" : " ",
                    state.fn2 ? "2" : " ");
-#endif
-#if 0
-            printf("Left[%s/%s(%03d)/%s(%03d,%03d)] ", state.l1 ? "x" : " ", state.l2 ? "x" : " ", state.l2_value, state.l3 ? "x" : " ", state.l3_x, state.l3_y);
-            printf("Right[%s/%s(%03d)/%s(%03d,%03d)] ", state.r1 ? "x" : " ", state.r2 ? "x" : " ", state.r2_value, state.r3 ? "x" : " ", state.r3_x, state.r3_y);
-#else
+
             printf("L[%s%s%s(%03d)(%03d,%03d)] ", state.l1 ? "1" : " ", state.l2 ? "2" : " ", state.l3 ? "3" : " ", state.l2_value, state.l3_x, state.l3_y);
             printf("R[%s%s%s(%03d)(%03d,%03d)] ", state.r1 ? "1" : " ", state.r2 ? "2" : " ", state.r3 ? "3" : " ", state.r2_value, state.r3_x, state.r3_y);
-#endif
+
             printf("Touch[%02d/%3d] ", state.touch_packet_size, state.touch_counter);
             printf("T1[%s/%3d(%04d,%03d)] ", state.touch_f1_a_active ? "x" : " ", state.touch_f1_a_counter, state.touch_f1_a_x, state.touch_f1_a_y);
             printf("T2[%s/%3d(%04d,%03d)] ", state.touch_f2_a_active ? "x" : " ", state.touch_f2_a_counter, state.touch_f2_a_x, state.touch_f2_a_y);
@@ -104,7 +80,7 @@ int main()
     ////////////////////////////////////////////
     // CLOSING
     ////////////////////////////////////////////
-    printf("[CLOSING] DS4 on PicoW\n");
+    printf("%s [CLOSING] DS4 on PicoW\n", LOG_HEADER);
     stdio_deinit_all();
     return 0;
 }
