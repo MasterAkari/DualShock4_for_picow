@@ -1,8 +1,10 @@
 
 #include "ds4_on_pico_w.hpp"
 
-#include "btstack.h"
+// config
 #include "btstack_config.h"
+// bluetooth
+#include "btstack.h"
 #include "btstack_run_loop.h"
 #include "classic/sdp_server.h"
 #include "pico/async_context.h"
@@ -204,6 +206,7 @@ static bool hid_linked = false;
 /////////////////
 struct DualShock4_state latest;
 struct DualShock4_state ds4_state;
+struct DS4forPicoW::config request_config;
 
 struct device devices[MAX_DEVICES];
 
@@ -265,7 +268,7 @@ static void func_continue_remote_names(void)
         if (devices[i].state == REMOTE_NAME_REQUEST) {
             devices[i].state = REMOTE_NAME_INQUIRED;
 #if VERBOSE_DS4_REPORTS
-            printf("[--] Get remote name of [%s]\n", bd_addr_to_str(devices[i].address));
+            printf("%sGet remote name of [%s]\n", DS4_FOR_PICO_W_LOG_HEADER, bd_addr_to_str(devices[i].address));
 #endif
             gap_remote_name_request(devices[i].address, devices[i].pageScanRepetitionMode, devices[i].clockOffset | 0x8000);
             return;
@@ -322,6 +325,7 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
 #endif
                     }
                     if (gap_event_inquiry_result_get_name_available(packet)) {
+                        bool flag_check = true;
                         char name_buffer[240];
                         int name_len = gap_event_inquiry_result_get_name_len(packet);
                         memcpy(name_buffer, gap_event_inquiry_result_get_name(packet), name_len);
@@ -330,13 +334,23 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                         printf(", name '%s'", name_buffer);
 #endif
                         devices[deviceCount].state = REMOTE_NAME_FETCHED;
-
-                        if (strcmp(name_buffer, "Wireless Controller") == 0) {
-                            mac         = mac_addr;
-                            device_type = DEVICE_DS4;
-                        } else if (strcmp(name_buffer, "DualSense Edge Wireless Controller") == 0) {
-                            mac         = mac_addr;
-                            device_type = DEVICE_DS5;
+                        if (strcmp("", request_config.mac_address.c_str()) != 0) {
+                            if (strcmp(mac_addr, request_config.mac_address.c_str()) != 0) {
+                                flag_check = false;
+                            }
+                        }
+                        if (true == flag_check) {
+                            if (strcmp(name_buffer, "Wireless Controller") == 0) {
+                                mac         = mac_addr;
+                                device_type = DEVICE_DS4;
+                            } else if (strcmp(name_buffer, "DualSense Edge Wireless Controller") == 0) {
+                                mac         = mac_addr;
+                                device_type = DEVICE_DS5;
+                            }
+                        } else {
+#if DEBUG_DS4_REPORTS
+                            printf("%sNot match device name: '%s'!='%s'\n", DS4_FOR_PICO_W_LOG_HEADER, request_config.mac_address.c_str(), mac_addr);
+#endif
                         }
                     } else {
                         devices[deviceCount].state = REMOTE_NAME_REQUEST;
@@ -357,21 +371,33 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                     break;
 
                 case HCI_EVENT_REMOTE_NAME_REQUEST_COMPLETE: {
+                    bool flag_check = true;
                     reverse_bd_addr(&packet[3], addr);
-                    index = func_get_device_index_for_address(addr);
+                    char *mac_addr = bd_addr_to_str(addr);
+                    index          = func_get_device_index_for_address(addr);
                     if (index >= 0) {
                         if (packet[2] == 0) {
 #if INFO_DS4_REPORTS
-                            printf("%sDevice Name: '%s'\n", DS4_FOR_PICO_W_LOG_HEADER,  &packet[9]);
+                            printf("%sDevice Name: '%s'\n", DS4_FOR_PICO_W_LOG_HEADER, &packet[9]);
 #endif
                             devices[index].state = REMOTE_NAME_FETCHED;
-
-                            if (strcmp((char const *)&packet[9], "Wireless Controller") == 0) {
-                                mac         = bd_addr_to_str(addr);
-                                device_type = DEVICE_DS4;
-                            } else if (strcmp((char const *)&packet[9], "DualSense Edge Wireless Controller") == 0) {
-                                mac         = bd_addr_to_str(addr);
-                                device_type = DEVICE_DS5;
+                            if (strcmp("", request_config.mac_address.c_str()) != 0) {
+                                if (strcmp(mac_addr, request_config.mac_address.c_str()) != 0) {
+                                    flag_check = false;
+                                }
+                            }
+                            if (true == flag_check) {
+                                if (strcmp((char const *)&packet[9], "Wireless Controller") == 0) {
+                                    mac         = mac_addr;
+                                    device_type = DEVICE_DS4;
+                                } else if (strcmp((char const *)&packet[9], "DualSense Edge Wireless Controller") == 0) {
+                                    mac         = mac_addr;
+                                    device_type = DEVICE_DS5;
+                                }
+                            } else {
+#if DEBUG_DS4_REPORTS
+                                printf("%sNot match device name: '%s'!='%s'\n", DS4_FOR_PICO_W_LOG_HEADER, request_config.mac_address.c_str(), mac_addr);
+#endif
                             }
                         } else {
 #if ERROR_DS4_REPORTS
@@ -402,6 +428,9 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
 
 static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_t packet_len)
 {
+    if (packet_len < 1) {
+        return;
+    }
     // Only interested in report_id 0x11
     if (DEVICE_DS4 == device_type) {
         if ((packet[0] != 0xa1) || (packet[1] != 0x11)) {
@@ -595,10 +624,8 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
     UNUSED(size);
 
     uint8_t event;
-    uint8_t hid_event;
     bd_addr_t event_addr;
     uint8_t status;
-    uint8_t reason;
 
     if (packet_type != HCI_EVENT_PACKET) {
         return;
@@ -629,37 +656,37 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
             // On boot, we try a manual connection
             if (btstack_event_state_get_state(packet) == HCI_STATE_WORKING) {
                 status = hid_host_connect(remote_addr, hid_host_report_mode, &hid_host_cid);
-#if ERROR_DS4_REPORTS
                 if (status != ERROR_CODE_SUCCESS) {
+#if ERROR_DS4_REPORTS
                     printf("%sHID_HOST_CONNECT command failed: 0x%02x\n", DS4_FOR_PICO_W_LOG_HEADER, status);
+#endif
                     return;
                 }
-#endif
 #if DEBUG_DS4_REPORTS
                 printf("%sStarting HID_HOST_CONNECT (%s)\n", DS4_FOR_PICO_W_LOG_HEADER, bd_addr_to_str(remote_addr));
 #endif
             }
             break;
         case HCI_EVENT_CONNECTION_COMPLETE:
-            status = hci_event_connection_complete_get_status(packet);
 #if DEBUG_DS4_REPORTS
+            status = hci_event_connection_complete_get_status(packet);
             printf("%sConnection complete: %X\n", DS4_FOR_PICO_W_LOG_HEADER, status);
 #endif
             break;
-        case HCI_EVENT_DISCONNECTION_COMPLETE:
-            status = hci_event_disconnection_complete_get_status(packet);
-            reason = hci_event_disconnection_complete_get_reason(packet);
+        case HCI_EVENT_DISCONNECTION_COMPLETE: {
 #if DEBUG_DS4_REPORTS
+            status         = hci_event_disconnection_complete_get_status(packet);
+            uint8_t reason = hci_event_disconnection_complete_get_reason(packet);
             printf("%sDisconnection complete: status: 0x%X, reason: 0x%X\n", DS4_FOR_PICO_W_LOG_HEADER, status, reason);
 #endif
             hid_linked = false;
             memcpy(&latest, &default_state, sizeof(latest));
             // btstack_run_loop_trigger_exit();
             remote_addr_string = NULL;
-            break;
+        } break;
         case HCI_EVENT_MAX_SLOTS_CHANGED:
-            status = hci_event_max_slots_changed_get_lmp_max_slots(packet);
 #if DEBUG_DS4_REPORTS
+            status = hci_event_max_slots_changed_get_lmp_max_slots(packet);
             printf("%sMax slots changed: %X\n", DS4_FOR_PICO_W_LOG_HEADER, status);
 #endif
             break;
@@ -675,8 +702,8 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
             printf("%sSSP User Confirmation Request: %d\n", DS4_FOR_PICO_W_LOG_HEADER, little_endian_read_32(packet, 8));
 #endif
             break;
-        case HCI_EVENT_HID_META:
-            hid_event = hci_event_hid_meta_get_subevent_code(packet);
+        case HCI_EVENT_HID_META: {
+            uint8_t hid_event = hci_event_hid_meta_get_subevent_code(packet);
             switch (hid_event) {
                 case HID_SUBEVENT_INCOMING_CONNECTION:
                     hid_subevent_incoming_connection_get_address(packet, event_addr);
@@ -731,7 +758,7 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
 #endif
                     }
                     break;
-                case HID_SUBEVENT_SET_PROTOCOL_RESPONSE:
+                case HID_SUBEVENT_SET_PROTOCOL_RESPONSE: {
                     status = hid_subevent_set_protocol_response_get_handshake_status(packet);
                     if (status != HID_HANDSHAKE_PARAM_TYPE_SUCCESSFUL) {
 #if ERROR_DS4_REPORTS
@@ -757,7 +784,7 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
 #endif
                             break;
                     }
-                    break;
+                } break;
                 case HID_SUBEVENT_CONNECTION_CLOSED:
 #if DEBUG_DS4_REPORTS
                     printf("%sHID connection closed: %s\n", DS4_FOR_PICO_W_LOG_HEADER, bd_addr_to_str(connected_addr));
@@ -777,7 +804,7 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
 #endif
                     break;
             }
-            break;
+        } break;
         default:
             // printf("Unknown HCI event: 0x%X\n", event);
             break;
@@ -839,6 +866,9 @@ void func_bt_hid_main()
         cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, false);
         btstack_run_loop_remove_timer(&blink_timer);
     }
+
+    sdp_deinit();
+    sm_deinit();
 }
 void func_bt_closing()
 {
@@ -866,6 +896,10 @@ DS4forPicoW::~DS4forPicoW()
 }
 void DS4forPicoW::setup(config config)
 {
+    request_config = (struct DS4forPicoW::config){
+        .blink_led   = config.blink_led,
+        .mac_address = (strcmp("", config.mac_address.c_str()) != 0) ? config.mac_address : "",
+    };
     if (false == DS4forPicoW_flag_setup) {
         DS4forPicoW_flag_setup = true;
         g_flag_blink_led       = config.blink_led;

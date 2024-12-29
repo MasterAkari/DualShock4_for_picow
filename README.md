@@ -30,16 +30,30 @@ Sample code is as follows:
 
 int your_function()
 {
-    DS4forPicoW controller;
+    stdio_init_all();
+
     bool loop_contents = true;
+    DualShock4_state state;
+    DS4forPicoW controller;
+    ////////////////////////////////////////////
+    // SETUP
+    ////////////////////////////////////////////
+    controller.setup((DS4forPicoW::config){ .blink_led = true, .mac_address = "" });
     do {
-        printf("Starting inquiry scan..\n");
-        loop_contents = controller.scan();
+        loop_contents = controller.is_connected(3000);
     } while (false == loop_contents);
 
+    ////////////////////////////////////////////
+    // LOOP
+    ////////////////////////////////////////////
     while (loop_contents) {
-       bt_hid_state state = controller.get_state();
+        tight_loop_contents();
+        state = controller.get_state();
     }
+
+    stdio_deinit_all();
+
+    return 0;
 }
 ```
 
