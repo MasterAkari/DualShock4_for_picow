@@ -229,6 +229,7 @@ enum DEVICE_TYPE device_type = DEVICE_UNKNOWN;
 #define DS4_FOR_PICO_W_BLINK_MS 250
 volatile bool g_flag_blink_led = false;
 static btstack_timer_source_t blink_timer;
+static int blink_timer_ms = DS4_FOR_PICO_W_BLINK_MS;
 static void func_blink_handler(btstack_timer_source_t *ts)
 {
     static bool on = 0;
@@ -241,7 +242,7 @@ static void func_blink_handler(btstack_timer_source_t *ts)
 
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, !!on);
 
-    btstack_run_loop_set_timer(&blink_timer, DS4_FOR_PICO_W_BLINK_MS);
+    btstack_run_loop_set_timer(&blink_timer, blink_timer_ms);
     btstack_run_loop_add_timer(&blink_timer);
 }
 #pragma endregion
@@ -725,7 +726,8 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
                     printf("%sConnected to (%s)\n", DS4_FOR_PICO_W_LOG_HEADER, bd_addr_to_str(event_addr));
 #endif
                     bd_addr_copy(connected_addr, event_addr);
-                    hid_linked = true;
+                    hid_linked     = true;
+                    blink_timer_ms = request_config.blink_time_ms_rescan;
                     break;
                 case HID_SUBEVENT_DESCRIPTOR_AVAILABLE:
                     status = hid_subevent_descriptor_available_get_status(packet);
@@ -825,7 +827,8 @@ void func_bt_hid_main()
 
     if (true == g_flag_blink_led) {
         blink_timer.process = &func_blink_handler;
-        btstack_run_loop_set_timer(&blink_timer, DS4_FOR_PICO_W_BLINK_MS);
+        blink_timer_ms      = request_config.blink_time_ms_search;
+        btstack_run_loop_set_timer(&blink_timer, blink_timer_ms);
         btstack_run_loop_add_timer(&blink_timer);
     }
 
@@ -894,8 +897,10 @@ DS4forPicoW::~DS4forPicoW()
 void DS4forPicoW::setup(config config)
 {
     request_config = (struct DS4forPicoW::config){
-        .blink_led   = config.blink_led,
-        .mac_address = (strcmp("", config.mac_address.c_str()) != 0) ? config.mac_address : "",
+        .mac_address          = (strcmp("", config.mac_address.c_str()) != 0) ? config.mac_address : "",
+        .blink_led            = config.blink_led,
+        .blink_time_ms_search = config.blink_time_ms_search,
+        .blink_time_ms_rescan = config.blink_time_ms_rescan,
     };
     if (false == DS4forPicoW_flag_setup) {
         DS4forPicoW_flag_setup = true;

@@ -17,7 +17,7 @@ int main()
     stdio_init_all();
     sleep_ms(5000);
     printf("======================\n[SETUP] DS4 on PicoW\n======================\n");
-    controller.setup((DS4forPicoW::config){ .blink_led = true, .mac_address = "" });
+    controller.setup((DS4forPicoW::config){ .mac_address = "" });
 
     while (1) {
         do {
