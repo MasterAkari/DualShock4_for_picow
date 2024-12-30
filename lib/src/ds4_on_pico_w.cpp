@@ -644,7 +644,6 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
                 printf("%sHID_HOST_CONNECT command failed: 0x%02x\n", DS4_FOR_PICO_W_LOG_HEADER, status);
             }
 #endif
-
             return;
         } else {
             return;
@@ -681,8 +680,6 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
 #endif
             hid_linked = false;
             memcpy(&latest, &default_state, sizeof(latest));
-            // btstack_run_loop_trigger_exit();
-            remote_addr_string = NULL;
         } break;
         case HCI_EVENT_MAX_SLOTS_CHANGED:
 #if DEBUG_DS4_REPORTS
