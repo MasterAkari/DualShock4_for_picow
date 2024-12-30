@@ -22,19 +22,7 @@
 ///////////////////////////////////////////////////////
 #pragma region Ds4forPicoW_Definitions
 
-#ifndef ERROR_DS4_REPORTS
-#define ERROR_DS4_REPORTS 1
-#endif
-#ifndef INFO_DS4_REPORTS
-#define INFO_DS4_REPORTS 1
-#endif
-#ifndef DEBUG_DS4_REPORTS
-#define DEBUG_DS4_REPORTS 0
-#endif
-#ifndef VERBOSE_DS4_REPORTS
-#define VERBOSE_DS4_REPORTS 0
-#endif
-#define DS4_FOR_PICO_W_LOG_HEADER "[lib_DOP]"
+#define DS4_FOR_PICO_W_LOG_HEADER "[DOP] "
 
 #define MAX_ATTRIBUTE_VALUE_SIZE 512
 #define MAX_DEVICES              20
@@ -268,7 +256,7 @@ static void func_continue_remote_names(void)
         // remote name request
         if (devices[i].state == REMOTE_NAME_REQUEST) {
             devices[i].state = REMOTE_NAME_INQUIRED;
-#if VERBOSE_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
             printf("%sGet remote name of [%s]\n", DS4_FOR_PICO_W_LOG_HEADER, bd_addr_to_str(devices[i].address));
 #endif
             gap_remote_name_request(devices[i].address, devices[i].pageScanRepetitionMode, devices[i].clockOffset | 0x8000);
@@ -314,14 +302,14 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                     devices[deviceCount].pageScanRepetitionMode = gap_event_inquiry_result_get_page_scan_repetition_mode(packet);
                     devices[deviceCount].clockOffset            = gap_event_inquiry_result_get_clock_offset(packet);
                     char *mac_addr                              = bd_addr_to_str(addr);
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                     printf("%s[%s] Device found: [%s] ", DS4_FOR_PICO_W_LOG_HEADER, "GAP_EVENT_INQUIRY_RESULT", mac_addr);
                     printf("with COD[0x%06X], ", (unsigned int)gap_event_inquiry_result_get_class_of_device(packet));
                     printf("pageScan[%d], ", devices[deviceCount].pageScanRepetitionMode);
                     printf("clock offset[0x%04X]", devices[deviceCount].clockOffset);
 #endif
                     if (gap_event_inquiry_result_get_rssi_available(packet)) {
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                         printf(", rssi %d dBm", (int8_t)gap_event_inquiry_result_get_rssi(packet));
 #endif
                     }
@@ -331,7 +319,7 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                         int name_len = gap_event_inquiry_result_get_name_len(packet);
                         memcpy(name_buffer, gap_event_inquiry_result_get_name(packet), name_len);
                         name_buffer[name_len] = 0;
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                         printf(", name '%s'", name_buffer);
 #endif
                         devices[deviceCount].state = REMOTE_NAME_FETCHED;
@@ -349,14 +337,14 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                                 device_type = DEVICE_DS5;
                             }
                         } else {
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                             printf("%sNot match device name: '%s'!='%s'\n", DS4_FOR_PICO_W_LOG_HEADER, request_config.mac_address.c_str(), mac_addr);
 #endif
                         }
                     } else {
                         devices[deviceCount].state = REMOTE_NAME_REQUEST;
                     }
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                     printf("\n");
 #endif
                     deviceCount++;
@@ -378,7 +366,7 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                     index          = func_get_device_index_for_address(addr);
                     if (index >= 0) {
                         if (packet[2] == 0) {
-#if INFO_DS4_REPORTS
+#if ENABLE_LOG_INFO
                             printf("%sDevice Name: '%s'\n", DS4_FOR_PICO_W_LOG_HEADER, &packet[9]);
 #endif
                             devices[index].state = REMOTE_NAME_FETCHED;
@@ -396,12 +384,12 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                                     device_type = DEVICE_DS5;
                                 }
                             } else {
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                                 printf("%sNot match device name: '%s'!='%s'\n", DS4_FOR_PICO_W_LOG_HEADER, request_config.mac_address.c_str(), mac_addr);
 #endif
                             }
                         } else {
-#if ERROR_DS4_REPORTS
+#if ENABLE_LOG_ERROR
                             printf("%sFailed to get name: page timeout\n", DS4_FOR_PICO_W_LOG_HEADER);
 #endif
                         }
@@ -440,10 +428,6 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
         if (packet_len < sizeof(struct input_report_ds4) + 1) {
             return;
         }
-
-#if VERBOSE_DS4_REPORTS
-        printf_hexdump(packet, packet_len);
-#endif
 
         struct input_report_ds4 *report = (struct input_report_ds4 *)&packet[1];
 
@@ -519,9 +503,7 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
         if (packet_len < sizeof(struct input_report_ds5) + 1) {
             return;
         }
-#if VERBOSE_DS4_REPORTS
-        printf_hexdump(packet, packet_len);
-#endif
+
         struct input_report_ds5 *report = (struct input_report_ds5 *)&packet[1];
 
         // Note: This assumes that we're protected by async_context's single-threaded-ness
@@ -640,7 +622,7 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
             sscanf_bd_addr(remote_addr_string, remote_addr);
             func_bt_hid_disconnected(remote_addr);
             status = hid_host_connect(remote_addr, hid_host_report_mode, &hid_host_cid);
-#if ERROR_DS4_REPORTS
+#if ENABLE_LOG_ERROR
             if (status != ERROR_CODE_SUCCESS) {
                 printf("%sHID_HOST_CONNECT command failed: 0x%02x\n", DS4_FOR_PICO_W_LOG_HEADER, status);
             }
@@ -657,24 +639,24 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
             if (btstack_event_state_get_state(packet) == HCI_STATE_WORKING) {
                 status = hid_host_connect(remote_addr, hid_host_report_mode, &hid_host_cid);
                 if (status != ERROR_CODE_SUCCESS) {
-#if ERROR_DS4_REPORTS
+#if ENABLE_LOG_ERROR
                     printf("%sHID_HOST_CONNECT command failed: 0x%02x\n", DS4_FOR_PICO_W_LOG_HEADER, status);
 #endif
                     return;
                 }
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                 printf("%sStarting HID_HOST_CONNECT (%s)\n", DS4_FOR_PICO_W_LOG_HEADER, bd_addr_to_str(remote_addr));
 #endif
             }
             break;
         case HCI_EVENT_CONNECTION_COMPLETE:
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
             status = hci_event_connection_complete_get_status(packet);
             printf("%sConnection complete: %X\n", DS4_FOR_PICO_W_LOG_HEADER, status);
 #endif
             break;
         case HCI_EVENT_DISCONNECTION_COMPLETE: {
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_INFO
             status         = hci_event_disconnection_complete_get_status(packet);
             uint8_t reason = hci_event_disconnection_complete_get_reason(packet);
             printf("%sDisconnection complete: status: 0x%X, reason: 0x%X\n", DS4_FOR_PICO_W_LOG_HEADER, status, reason);
@@ -683,20 +665,20 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
             memcpy(&latest, &default_state, sizeof(latest));
         } break;
         case HCI_EVENT_MAX_SLOTS_CHANGED:
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
             status = hci_event_max_slots_changed_get_lmp_max_slots(packet);
             printf("%sMax slots changed: %X\n", DS4_FOR_PICO_W_LOG_HEADER, status);
 #endif
             break;
         case HCI_EVENT_PIN_CODE_REQUEST:
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
             printf("%sPin code request. Responding '0000'\n", DS4_FOR_PICO_W_LOG_HEADER);
 #endif
             hci_event_pin_code_request_get_bd_addr(packet, event_addr);
             gap_pin_code_response(event_addr, "0000");
             break;
         case HCI_EVENT_USER_CONFIRMATION_REQUEST:
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
             printf("%sSSP User Confirmation Request: %d\n", DS4_FOR_PICO_W_LOG_HEADER, little_endian_read_32(packet, 8));
 #endif
             break;
@@ -705,7 +687,7 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
             switch (hid_event) {
                 case HID_SUBEVENT_INCOMING_CONNECTION:
                     hid_subevent_incoming_connection_get_address(packet, event_addr);
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                     printf("%sAccepting connection from %s\n", DS4_FOR_PICO_W_LOG_HEADER, bd_addr_to_str(event_addr));
 #endif
                     hid_host_accept_connection(hid_subevent_incoming_connection_get_hid_cid(packet), hid_host_report_mode);
@@ -714,7 +696,7 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
                     status = hid_subevent_connection_opened_get_status(packet);
                     hid_subevent_connection_opened_get_bd_addr(packet, event_addr);
                     if (status != ERROR_CODE_SUCCESS) {
-#if ERROR_DS4_REPORTS
+#if ENABLE_LOG_ERROR
                         printf("%sConnection to %s failed: 0x%02x\n", DS4_FOR_PICO_W_LOG_HEADER, bd_addr_to_str(event_addr), status);
 #endif
                         func_bt_hid_disconnected(event_addr);
@@ -722,7 +704,7 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
                     }
                     hid_host_descriptor_available = false;
                     hid_host_cid                  = hid_subevent_connection_opened_get_hid_cid(packet);
-#if INFO_DS4_REPORTS
+#if ENABLE_LOG_INFO
                     printf("%sConnected to (%s)\n", DS4_FOR_PICO_W_LOG_HEADER, bd_addr_to_str(event_addr));
 #endif
                     bd_addr_copy(connected_addr, event_addr);
@@ -735,14 +717,14 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
                         hid_host_descriptor_available = true;
 
                         uint16_t dlen = hid_descriptor_storage_get_descriptor_len(hid_host_cid);
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                         printf("%sHID descriptor available. Len: %d\n", DS4_FOR_PICO_W_LOG_HEADER, dlen);
 #endif
 
                         // Send FEATURE 0x05, to switch the controller to "full" report mode
                         hid_host_send_get_report(hid_host_cid, HID_REPORT_TYPE_FEATURE, 0x05);
                     } else {
-#if ERROR_DS4_REPORTS
+#if ENABLE_LOG_ERROR
                         printf("%sCouldn't process HID Descriptor, status: %d\n", DS4_FOR_PICO_W_LOG_HEADER, status);
 #endif
                     }
@@ -751,16 +733,16 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
                     if (hid_host_descriptor_available) {
                         func_hid_host_handle_interrupt_report(hid_subevent_report_get_report(packet), hid_subevent_report_get_report_len(packet));
                     } else {
-#if ERROR_DS4_REPORTS
+#if ENABLE_LOG_ERROR
                         printf("%sNo hid host descriptor available\n", DS4_FOR_PICO_W_LOG_HEADER);
-                        printf_hexdump(hid_subevent_report_get_report(packet), hid_subevent_report_get_report_len(packet));
+                        // printf_hexdump(hid_subevent_report_get_report(packet), hid_subevent_report_get_report_len(packet));
 #endif
                     }
                     break;
                 case HID_SUBEVENT_SET_PROTOCOL_RESPONSE: {
                     status = hid_subevent_set_protocol_response_get_handshake_status(packet);
                     if (status != HID_HANDSHAKE_PARAM_TYPE_SUCCESSFUL) {
-#if ERROR_DS4_REPORTS
+#if ENABLE_LOG_ERROR
                         printf("%sProtocol handshake error: 0x%02x\n", DS4_FOR_PICO_W_LOG_HEADER, status);
 #endif
                         break;
@@ -768,24 +750,24 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
                     hid_protocol_mode_t proto = static_cast<hid_protocol_mode_t>(hid_subevent_set_protocol_response_get_protocol_mode(packet));
                     switch (proto) {
                         case HID_PROTOCOL_MODE_BOOT:
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                             printf("%sNegotiated protocol: BOOT\n", DS4_FOR_PICO_W_LOG_HEADER);
 #endif
                             break;
                         case HID_PROTOCOL_MODE_REPORT:
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                             printf("%sNegotiated protocol: REPORT\n", DS4_FOR_PICO_W_LOG_HEADER);
 #endif
                             break;
                         default:
-#if ERROR_DS4_REPORTS
+#if ENABLE_LOG_ERROR
                             printf("%sNegotiated unknown protocol: 0x%X\n", DS4_FOR_PICO_W_LOG_HEADER, proto);
 #endif
                             break;
                     }
                 } break;
                 case HID_SUBEVENT_CONNECTION_CLOSED:
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                     printf("%sHID connection closed: %s\n", DS4_FOR_PICO_W_LOG_HEADER, bd_addr_to_str(connected_addr));
 #endif
                     func_bt_hid_disconnected(connected_addr);
@@ -793,12 +775,12 @@ static void func_packet_handler(uint8_t packet_type, uint16_t channel, uint8_t *
                 case HID_SUBEVENT_GET_REPORT_RESPONSE: {
                     status        = hid_subevent_get_report_response_get_handshake_status(packet);
                     uint16_t dlen = hid_subevent_get_report_response_get_report_len(packet);
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                     printf("%sGET_REPORT response. status: %d, len: %d\n", DS4_FOR_PICO_W_LOG_HEADER, status, dlen);
 #endif
                 } break;
                 default:
-#if DEBUG_DS4_REPORTS
+#if ENABLE_LOG_DEBUG
                     printf("%sUnknown HID subevent: 0x%X\n", DS4_FOR_PICO_W_LOG_HEADER, hid_event);
 #endif
                     break;

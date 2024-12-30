@@ -11,10 +11,10 @@ target_include_directories(lib_ds4_on_pico PUBLIC
 )
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D BUILD_TYPE=\\\"Debug\\\" -D ERROR_DS4_REPORTS=1 -D INFO_DS4_REPORTS=1 -D DEBUG_DS4_REPORTS=1 -D VERBOSE_DS4_REPORTS=0")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D BUILD_TYPE=\\\"Debug\\\" -D ENABLE_LOG_INFO=1 -D ENABLE_LOG_ERROR=1 -D ENABLE_LOG_DEBUG=1")
 	message(STATUS "# Build \"lib_ds4_on_pico\":Debug")
 else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D BUILD_TYPE=\\\"BUILD_TYPE=Release\\\" -D ERROR_DS4_REPORTS=0 -D INFO_DS4_REPORTS=0 -D DEBUG_DS4_REPORTS=0 -D VERBOSE_DS4_REPORTS=0")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D BUILD_TYPE=\\\"BUILD_TYPE=Release\\\"")
 	message(STATUS "# Build \"lib_ds4_on_pico\":Release")
 endif()
 
