@@ -17,6 +17,10 @@ jobs:
         echo "Cleaning up previous run"
         rm -rf "${{ github.workspace }}/build"
         ls
+    - name: list
+      run: ls ${{ github.workspace }}
+    - name: list
+      run: ls ${{ github.workspace }}
 
     - name: Checkout pico-sdk/develop
       uses: actions/checkout@v4
@@ -36,7 +40,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: PICO_SDK_PATH=${{github.workspace}}/../pico-sdk cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      run: PICO_SDK_PATH=${{github.workspace}}/../pico-sdk cmake ./.. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Get core count
       id: core_count
