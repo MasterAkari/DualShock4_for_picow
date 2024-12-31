@@ -48,27 +48,28 @@ struct DualShock4_state {
     //  To use the touch pad button, simply press the touch pad.
     bool touch;
     uint8_t touch_packet_size;
-    uint8_t touch_counter;
+    uint8_t touch_timestamp;
 
-    bool touch_f1_a_active;
-    uint8_t touch_f1_a_counter;
-    uint16_t touch_f1_a_x;
-    uint16_t touch_f1_a_y;
+    bool touch_f1_active;
+    uint8_t touch_f1_counter;
+    uint16_t touch_f1_x;
+    uint16_t touch_f1_y;
 
-    bool touch_f2_a_active;
-    uint8_t touch_f2_a_counter;
-    uint16_t touch_f2_a_x;
-    uint16_t touch_f2_a_y;
+    bool touch_f2_active;
+    uint8_t touch_f2_counter;
+    uint16_t touch_f2_x;
+    uint16_t touch_f2_y;
 
-    bool touch_f1_b_active;
-    uint8_t touch_f1_b_counter;
-    uint16_t touch_f1_b_x;
-    uint16_t touch_f1_b_y;
+    // Touch pad button[Spare]
+    bool touch_f1_spare_active;
+    uint8_t touch_f1_spare_counter;
+    uint16_t touch_f1_spare_x;
+    uint16_t touch_f1_spare_y;
 
-    bool touch_f2_b_active;
-    uint8_t touch_f2_b_counter;
-    uint16_t touch_f2_b_x;
-    uint16_t touch_f2_b_y;
+    bool touch_f2_spare_active;
+    uint8_t touch_f2_spare_counter;
+    uint16_t touch_f2_spare_x;
+    uint16_t touch_f2_spare_y;
 
     // Top left button
     bool l1;

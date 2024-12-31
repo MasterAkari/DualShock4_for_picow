@@ -18,11 +18,7 @@ public:
     DS4forPicoW();
     ~DS4forPicoW();
     void setup(config config = (DS4forPicoW::config){ .mac_address = "", .blink_led = true, .blink_time_ms_search = 450, .blink_time_ms_rescan = 150 });
-    bool is_connected(int timeout_ms = 3000);
     DualShock4_state get_state();
-
-private:
-    const int TIMEOUT_SPAN_MS = 100;
 };
 
 #endif

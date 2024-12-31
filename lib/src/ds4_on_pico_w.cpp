@@ -75,27 +75,27 @@ const struct DualShock4_state default_state = {
 
     .touch             = false,
     .touch_packet_size = 0x00,
-    .touch_counter     = 0x00,
+    .touch_timestamp   = 0x00,
 
-    .touch_f1_a_active  = false,
-    .touch_f1_a_counter = 0x00,
-    .touch_f1_a_x       = 0x00,
-    .touch_f1_a_y       = 0x00,
+    .touch_f1_active  = false,
+    .touch_f1_counter = 0x00,
+    .touch_f1_x       = 0x00,
+    .touch_f1_y       = 0x00,
 
-    .touch_f2_a_active  = false,
-    .touch_f2_a_counter = 0x00,
-    .touch_f2_a_x       = 0x00,
-    .touch_f2_a_y       = 0x00,
+    .touch_f2_active  = false,
+    .touch_f2_counter = 0x00,
+    .touch_f2_x       = 0x00,
+    .touch_f2_y       = 0x00,
 
-    .touch_f1_b_active  = false,
-    .touch_f1_b_counter = 0x00,
-    .touch_f1_b_x       = 0x00,
-    .touch_f1_b_y       = 0x00,
+    .touch_f1_spare_active  = false,
+    .touch_f1_spare_counter = 0x00,
+    .touch_f1_spare_x       = 0x00,
+    .touch_f1_spare_y       = 0x00,
 
-    .touch_f2_b_active  = false,
-    .touch_f2_b_counter = 0x00,
-    .touch_f2_b_x       = 0x00,
-    .touch_f2_b_y       = 0x00,
+    .touch_f2_spare_active  = false,
+    .touch_f2_spare_counter = 0x00,
+    .touch_f2_spare_x       = 0x00,
+    .touch_f2_spare_y       = 0x00,
 
     .l1              = false,
     .l2              = false,
@@ -448,27 +448,27 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
             .touch     = (bool)(report->buttons[2] & 0x02u),
 
             .touch_packet_size = report->pad_size,
-            .touch_counter     = report->pad_counter,
+            .touch_timestamp   = report->pad_counter,
 
-            .touch_f1_a_active  = !(bool)(report->pad1a[0] & 0x80u),
-            .touch_f1_a_counter = (uint8_t)(report->pad1a[0] & 0x7Fu),
-            .touch_f1_a_x       = (uint16_t)((report->pad1a[1]) | ((report->pad1a[2] & 0x0Fu) << 8)),
-            .touch_f1_a_y       = (uint16_t)(((uint16_t)(report->pad1a[3]) << 4) | ((report->pad1a[2] & 0xF0u) >> 4)),
+            .touch_f1_active  = !(bool)(report->pad1a[0] & 0x80u),
+            .touch_f1_counter = (uint8_t)(report->pad1a[0] & 0x7Fu),
+            .touch_f1_x       = (uint16_t)((report->pad1a[1]) | ((report->pad1a[2] & 0x0Fu) << 8)),
+            .touch_f1_y       = (uint16_t)(((uint16_t)(report->pad1a[3]) << 4) | ((report->pad1a[2] & 0xF0u) >> 4)),
 
-            .touch_f2_a_active  = !(bool)(report->pad2a[0] & 0x80u),
-            .touch_f2_a_counter = (uint8_t)(report->pad2a[0] & 0x7Fu),
-            .touch_f2_a_x       = (uint16_t)((report->pad2a[1]) | ((report->pad2a[2] & 0x0Fu) << 8)),
-            .touch_f2_a_y       = (uint16_t)(((uint16_t)(report->pad2a[3]) << 4) | ((report->pad2a[2] & 0xF0u) >> 4)),
+            .touch_f2_active  = !(bool)(report->pad2a[0] & 0x80u),
+            .touch_f2_counter = (uint8_t)(report->pad2a[0] & 0x7Fu),
+            .touch_f2_x       = (uint16_t)((report->pad2a[1]) | ((report->pad2a[2] & 0x0Fu) << 8)),
+            .touch_f2_y       = (uint16_t)(((uint16_t)(report->pad2a[3]) << 4) | ((report->pad2a[2] & 0xF0u) >> 4)),
 
-            .touch_f1_b_active  = !(bool)(report->pad1b[0] & 0x80u),
-            .touch_f1_b_counter = (uint8_t)(report->pad1b[0] & 0x7Fu),
-            .touch_f1_b_x       = (uint16_t)((report->pad1b[1]) | ((report->pad1b[2] & 0x0Fu) << 8)),
-            .touch_f1_b_y       = (uint16_t)(((uint16_t)(report->pad1b[3]) << 4) | ((report->pad1b[2] & 0xF0u) >> 4)),
+            .touch_f1_spare_active  = !(bool)(report->pad1b[0] & 0x80u),
+            .touch_f1_spare_counter = (uint8_t)(report->pad1b[0] & 0x7Fu),
+            .touch_f1_spare_x       = (uint16_t)((report->pad1b[1]) | ((report->pad1b[2] & 0x0Fu) << 8)),
+            .touch_f1_spare_y       = (uint16_t)(((uint16_t)(report->pad1b[3]) << 4) | ((report->pad1b[2] & 0xF0u) >> 4)),
 
-            .touch_f2_b_active  = !(bool)(report->pad2b[0] & 0x80u),
-            .touch_f2_b_counter = (uint8_t)(report->pad2b[0] & 0x7Fu),
-            .touch_f2_b_x       = (uint16_t)((report->pad2b[1]) | ((report->pad2b[2] & 0x0Fu) << 8)),
-            .touch_f2_b_y       = (uint16_t)(((uint16_t)(report->pad2b[3]) << 4) | ((report->pad2b[2] & 0xF0u) >> 4)),
+            .touch_f2_spare_active  = !(bool)(report->pad2b[0] & 0x80u),
+            .touch_f2_spare_counter = (uint8_t)(report->pad2b[0] & 0x7Fu),
+            .touch_f2_spare_x       = (uint16_t)((report->pad2b[1]) | ((report->pad2b[2] & 0x0Fu) << 8)),
+            .touch_f2_spare_y       = (uint16_t)(((uint16_t)(report->pad2b[3]) << 4) | ((report->pad2b[2] & 0xF0u) >> 4)),
 
             .l1              = (bool)(report->buttons[1] & 0x01u),
             .l2              = (bool)(report->buttons[1] & 0x04u),
@@ -491,8 +491,8 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
             .battery         = report->battery,
             .battery_level   = (uint8_t)(report->status & 0x0Fu),
             .connected_usb   = (report->status & 0x10u) > 0 ? true : false,
-            .connected_mic   = (report->status & 0x20u) > 0 ? true : false,
-            .connected_phone = (report->status & 0x40u) > 0 ? true : false,
+            .connected_mic   = (report->status & 0x40u) > 0 ? true : false,
+            .connected_phone = (report->status & 0x20u) > 0 ? true : false,
             .timestamp       = (uint32_t)report->timestamp,
             .linked          = hid_linked,
         };
@@ -523,27 +523,27 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
 
             .touch             = (bool)(report->buttons[2] & 0x02u),
             .touch_packet_size = 0, // report->pad_size,
-            .touch_counter     = report->pad_counter,
+            .touch_timestamp   = report->pad_counter,
 
-            .touch_f1_a_active  = !(bool)(report->pad1a[0] & 0x80u),
-            .touch_f1_a_counter = (uint8_t)(report->pad1a[0] & 0x7Fu),
-            .touch_f1_a_x       = (uint16_t)((report->pad1a[1]) | ((report->pad1a[2] & 0x0Fu) << 8)),
-            .touch_f1_a_y       = (uint16_t)(((uint16_t)(report->pad1a[3]) << 4) | ((report->pad1a[2] & 0xF0u) >> 4)),
+            .touch_f1_active  = !(bool)(report->pad1a[0] & 0x80u),
+            .touch_f1_counter = (uint8_t)(report->pad1a[0] & 0x7Fu),
+            .touch_f1_x       = (uint16_t)((report->pad1a[1]) | ((report->pad1a[2] & 0x0Fu) << 8)),
+            .touch_f1_y       = (uint16_t)(((uint16_t)(report->pad1a[3]) << 4) | ((report->pad1a[2] & 0xF0u) >> 4)),
 
-            .touch_f2_a_active  = !(bool)(report->pad2a[0] & 0x80u),
-            .touch_f2_a_counter = (uint8_t)(report->pad2a[0] & 0x7Fu),
-            .touch_f2_a_x       = (uint16_t)((report->pad2a[1]) | ((report->pad2a[2] & 0x0Fu) << 8)),
-            .touch_f2_a_y       = (uint16_t)(((uint16_t)(report->pad2a[3]) << 4) | ((report->pad2a[2] & 0xF0u) >> 4)),
+            .touch_f2_active  = !(bool)(report->pad2a[0] & 0x80u),
+            .touch_f2_counter = (uint8_t)(report->pad2a[0] & 0x7Fu),
+            .touch_f2_x       = (uint16_t)((report->pad2a[1]) | ((report->pad2a[2] & 0x0Fu) << 8)),
+            .touch_f2_y       = (uint16_t)(((uint16_t)(report->pad2a[3]) << 4) | ((report->pad2a[2] & 0xF0u) >> 4)),
 
-            .touch_f1_b_active  = false,
-            .touch_f1_b_counter = 0,
-            .touch_f1_b_x       = 0,
-            .touch_f1_b_y       = 0,
+            .touch_f1_spare_active  = false,
+            .touch_f1_spare_counter = 0,
+            .touch_f1_spare_x       = 0,
+            .touch_f1_spare_y       = 0,
 
-            .touch_f2_b_active  = false,
-            .touch_f2_b_counter = 0,
-            .touch_f2_b_x       = 0,
-            .touch_f2_b_y       = 0,
+            .touch_f2_spare_active  = false,
+            .touch_f2_spare_counter = 0,
+            .touch_f2_spare_x       = 0,
+            .touch_f2_spare_y       = 0,
 
             .l1              = (bool)(report->buttons[1] & 0x01u),
             .l2              = (bool)(report->buttons[1] & 0x04u),
@@ -577,15 +577,11 @@ static void func_hid_host_handle_interrupt_report(const uint8_t *packet, uint16_
 bool func_bt_hid_get_latest(struct DualShock4_state *dst)
 {
 #if 0
-    if (true == hid_linked) {
-        async_context_t *context = cyw43_arch_async_context();
-        async_context_acquire_lock_blocking(context);
-        memcpy(dst, &latest, sizeof(*dst));
-        async_context_release_lock(context);
-        return true;
-    } else {
-        return false;
-    }
+    static async_context_t *context = cyw43_arch_async_context();
+    async_context_acquire_lock_blocking(context);
+    memcpy(dst, &latest, sizeof(*dst));
+    async_context_release_lock(context);
+    return true;
 #else
     memcpy(dst, &latest, sizeof(*dst));
     return true;
@@ -889,22 +885,6 @@ void DS4forPicoW::setup(config config)
         g_flag_blink_led       = config.blink_led;
         multicore_launch_core1(func_bt_hid_main);
     }
-}
-bool DS4forPicoW::is_connected(int timeout_ms)
-{
-    bool can_use = false;
-    int times    = timeout_ms / TIMEOUT_SPAN_MS;
-
-    for (int i = 0; i <= times; i++) {
-        func_bt_hid_get_latest(&ds4_state);
-        if (true == ds4_state.linked) {
-            can_use = true;
-            break;
-        }
-        sleep_ms(TIMEOUT_SPAN_MS);
-    }
-
-    return can_use;
 }
 
 DualShock4_state DS4forPicoW::get_state()
