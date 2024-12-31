@@ -26,8 +26,10 @@ int main()
             DualShock4_state state = controller.get_state();
             if (true == state.linked) {
                 loop_contents = true;
-                printf("# %s [Linked] %s\n", LOG_HEADER, controller.get_mac_address());
+                printf("\n%s [Linked] %s\n", LOG_HEADER, controller.get_mac_address());
                 break;
+            } else {
+                printf(".");
             }
             sleep_ms(250);
         } while (false == loop_contents);
@@ -36,7 +38,7 @@ int main()
         // LOOP
         ////////////////////////////////////////////
         DualShock4_state state;
-        printf("# %s [LOOP]\n", LOG_HEADER);
+        printf("%s [LOOP]\n", LOG_HEADER);
         while (loop_contents) {
             tight_loop_contents();
             state = controller.get_state();

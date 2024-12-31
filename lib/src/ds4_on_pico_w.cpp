@@ -124,6 +124,7 @@ const struct DualShock4_state default_state = {
     .linked          = false,
 };
 
+const char *WirelessController = "Wireless Controller";
 struct __attribute__((packed)) input_report_ds4 {
     uint8_t dummy0[2];
     uint8_t report_id;   // byte[0]
@@ -145,6 +146,8 @@ struct __attribute__((packed)) input_report_ds4 {
     uint8_t pad1b[4];
     uint8_t pad2b[4];
 };
+const char *DualSenseWirelessController     = "DualSense Wireless Controller";
+const char *DualSenseEdgeWirelessController = "DualSense Edge Wireless Controller";
 struct __attribute__((packed)) input_report_ds5 {
     uint8_t report_id;
     uint8_t dummy0;
@@ -329,10 +332,13 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                             }
                         }
                         if (true == flag_check) {
-                            if (strcmp(name_buffer, "Wireless Controller") == 0) {
+                            if (strcmp(name_buffer, WirelessController) == 0) {
                                 mac         = mac_addr;
                                 device_type = DEVICE_DS4;
-                            } else if (strcmp(name_buffer, "DualSense Edge Wireless Controller") == 0) {
+                            } else if (strcmp(name_buffer, DualSenseWirelessController) == 0) {
+                                mac         = mac_addr;
+                                device_type = DEVICE_DS5;
+                            } else if (strcmp(name_buffer, DualSenseEdgeWirelessController) == 0) {
                                 mac         = mac_addr;
                                 device_type = DEVICE_DS5;
                             }
@@ -376,10 +382,13 @@ char *func_get_mac(uint8_t packet_type, uint8_t *packet, uint8_t event)
                                 }
                             }
                             if (true == flag_check) {
-                                if (strcmp((char const *)&packet[9], "Wireless Controller") == 0) {
+                                if (strcmp((char const *)&packet[9], WirelessController) == 0) {
                                     mac         = mac_addr;
                                     device_type = DEVICE_DS4;
-                                } else if (strcmp((char const *)&packet[9], "DualSense Edge Wireless Controller") == 0) {
+                                } else if (strcmp((char const *)&packet[9], DualSenseWirelessController) == 0) {
+                                    mac         = mac_addr;
+                                    device_type = DEVICE_DS5;
+                                } else if (strcmp((char const *)&packet[9], DualSenseEdgeWirelessController) == 0) {
                                     mac         = mac_addr;
                                     device_type = DEVICE_DS5;
                                 }
