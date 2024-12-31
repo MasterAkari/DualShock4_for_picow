@@ -12,9 +12,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Clean workspace
       run: |
         echo "Cleaning up previous run"
+        ls
 
     - name: Checkout pico-sdk/develop
       uses: actions/checkout@v4
