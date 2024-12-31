@@ -5,7 +5,8 @@ on:
 
 env:
   BUILD_TYPE: Release
-  PICO_SDK_PATH: ${{github.workspace}}/pico-sdk
+  TZ: "Asia/Tokyo"
+  PROJECT_DIR: "RP2040"
 
 jobs:
   build:
@@ -30,21 +31,23 @@ jobs:
 
     - name: Checkout pico-sdk submodules
       working-directory: ${{github.workspace}}/pico-sdk
-      run: git submodule update --init
+      run: |
+        git submodule update --init
+        echo "PICO_SDK_PATH=$(pwd)/pico-sdk/" >> $GITHUB_ENV
+
+    - name: Install Toolchain
+      run: |
+        sudo apt update
+        sudo apt install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential
 
     - name: Create Build Environment
       working-directory: ${{github.workspace}}
       run:  cmake -E make_directory ${{github.workspace}}/build
 
-    - name: GCC 6.2.1 Release
-      shell: bash
-      working-directory: ./build
-      run: cmake ../ -DCMAKE_BUILD_TYPE=Release -DPICO_TOOLCHAIN_PATH=/opt/arm/gcc-arm-none-eabi-6_2-2016q4; make --output-sync=target --no-builtin-rules --no-builtin-variables -j$(nproc)
-
     - name: Configure CMake
       shell: bash
       working-directory: ./build
-      run: PICO_SDK_PATH=${{github.workspace}}/pico-sdk cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      run: PICO_SDK_PATH=${{github.workspace}}/pico-sdk cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_BUILD_TYPE=Release
 
     - name: Get core count
       id: core_count
@@ -54,3 +57,9 @@ jobs:
       working-directory: ${{github.workspace}}/build
       shell: bash
       run: cmake --build ${{github.workspace}}/build --config $BUILD_TYPE --parallel $(nproc)
+
+#    - name: Upload
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: Build
+#        path: ${{github.workspace}}/build/*.uf2
