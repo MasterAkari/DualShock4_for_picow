@@ -1,5 +1,4 @@
-name: BuildRelease
-
+name: Build_Release
 on:
   push
 
@@ -10,11 +9,11 @@ env:
 
 jobs:
   build:
-    name: Build example
+    name: Build Release
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout my project
       uses: actions/checkout@v4
 
     - name: Clean workspace
@@ -22,7 +21,7 @@ jobs:
         echo "Cleaning up previous run"
         rm -rf "${{ github.workspace }}/build"
 
-    - name: Checkout pico-sdk/develop
+    - name: Checkout pico-sdk/master
       uses: actions/checkout@v4
       with:
         repository: raspberrypi/pico-sdk
@@ -46,7 +45,7 @@ jobs:
 
     - name: Configure CMake
       shell: bash
-      working-directory: ./build
+      working-directory: ${{github.workspace}}/build
       run: PICO_SDK_PATH=${{github.workspace}}/pico-sdk cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_BUILD_TYPE=Release
 
     - name: Get core count
