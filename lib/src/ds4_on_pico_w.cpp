@@ -1,4 +1,11 @@
-
+/**
+ * @file ds4_on_pico_w.cpp
+ * @version 0.2.0
+ * @date 2024-12-31
+ *
+ * @copyright Copyright (c) 2024 @Akari.
+ *
+ */
 #include "ds4_on_pico_w.hpp"
 
 // config

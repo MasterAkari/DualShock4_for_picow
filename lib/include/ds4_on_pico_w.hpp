@@ -1,4 +1,11 @@
-
+/**
+ * @file ds4_on_pico_w.hpp
+ * @version 0.2.0
+ * @date 2024-12-31
+ *
+ * @copyright Copyright (c) 2024 @Akari.
+ *
+ */
 #ifndef PICO_W_FOR_DS4_HPP
 #define PICO_W_FOR_DS4_HPP
 #include "struct_ds4_on_pico_w.hpp"

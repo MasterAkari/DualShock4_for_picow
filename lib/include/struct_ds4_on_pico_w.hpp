@@ -1,10 +1,9 @@
 /**
  * @file struct_ds4_on_pico_w.hpp
- * @brief
- * @version 0.1
- * @date 2024-12-25
+ * @version 0.2.0
+ * @date 2024-12-31
  *
- * @copyright Copyright (c) 2024
+ * @copyright Copyright (c) 2024 @Akari.
  *
  */
 #ifndef STRUCT_DS4_FOR_PICO_W_HPP
