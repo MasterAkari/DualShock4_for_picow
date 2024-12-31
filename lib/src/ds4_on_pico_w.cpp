@@ -893,4 +893,13 @@ DualShock4_state DS4forPicoW::get_state()
     return ds4_state;
 }
 
+char *DS4forPicoW::get_mac_address()
+{
+    if (remote_addr_string[0] == '\0') {
+        return (char *)"";
+    } else {
+        return remote_addr_string;
+    }
+}
+
 #pragma endregion

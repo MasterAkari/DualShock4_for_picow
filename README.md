@@ -33,31 +33,56 @@ int your_function()
 {
     stdio_init_all();
 
-    bool loop_contents = true;
-    DualShock4_state state;
     DS4forPicoW controller;
+    bool loop_contents = true;
     ////////////////////////////////////////////
     // SETUP
     ////////////////////////////////////////////
-    controller.setup((DS4forPicoW::config){ .blink_led = true, .mac_address = "" });
-    do {
-        loop_contents = controller.is_connected(3000);
-    } while (false == loop_contents);
+    printf("======================\n[SETUP] DS4 on PicoW\n======================\n");
+    controller.setup();
+    // controller.setup((DS4forPicoW::config){ .mac_address = "00:00:00:00:00:00" });
 
-    ////////////////////////////////////////////
-    // LOOP
-    ////////////////////////////////////////////
-    while (loop_contents) {
-        tight_loop_contents();
-        state = controller.get_state();
+    while (1) {
+        loop_contents = false;
+        do {
+            DualShock4_state state = controller.get_state();
+            if (true == state.linked) {
+                loop_contents = true;
+                printf("# %s [Linked] %s\n", LOG_HEADER, controller.get_mac_address());
+                break;
+            }
+            sleep_ms(250);
+        } while (false == loop_contents);
+
+        ////////////////////////////////////////////
+        // LOOP
+        ////////////////////////////////////////////
+        DualShock4_state state;
+        while (loop_contents) {
+            tight_loop_contents();
+            state = controller.get_state();
+            if (true == state.linked) {
+            }
+            sleep_ms(20);
+        }
     }
 
+    ////////////////////////////////////////////
+    // CLOSING
+    ////////////////////////////////////////////
     stdio_deinit_all();
-
     return 0;
 }
 ```
 
+### Setup()で指示できるconfigの設定
+
+| メンバー名           | 型     | 説明                                                                               |
+| -------------------- | ------ | ---------------------------------------------------------------------------------- |
+| mac_address          | string | DualShock4のMACアドレスを指定する。未指定の場合、最初に見つかったものを接続する。  |
+| blink_led            | bool   | LED点滅を行うか。未指定の場合、true。                                              |
+| blink_time_ms_search | int    | 接続時のLED点滅時間(ミリ秒)。未指定の場合、450ms。                                 |
+| blink_time_ms_rescan | int    | 接続済みのコントローラの接続待ち状態ののLED点滅時間(ミリ秒)。未指定の場合、150ms。 |
 
 ## 構造体
 

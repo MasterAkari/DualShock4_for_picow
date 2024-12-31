@@ -19,6 +19,7 @@ public:
     ~DS4forPicoW();
     void setup(config config = (DS4forPicoW::config){ .mac_address = "", .blink_led = true, .blink_time_ms_search = 450, .blink_time_ms_rescan = 150 });
     DualShock4_state get_state();
+    char *get_mac_address();
 };
 
 #endif
