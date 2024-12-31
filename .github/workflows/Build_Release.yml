@@ -34,16 +34,6 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: PICO_SDK_PATH=${{github.workspace}}/../pico-sdk cmake ${{github.workspace}}/../ -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-
-    - name: Configure CMake
-      shell: bash
-      working-directory: ${{github.workspace}}/build
-      run: PICO_SDK_PATH=${{github.workspace}}/../pico-sdk cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE
-
-    - name: Configure CMake
-      shell: bash
-      working-directory: ${{github.workspace}}/build
       run: PICO_SDK_PATH=${{github.workspace}}/../pico-sdk cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Get core count
@@ -53,4 +43,4 @@ jobs:
     - name: Build
       working-directory: ${{github.workspace}}/build
       shell: bash
-      run: cmake --build . --config $BUILD_TYPE --parallel $(nproc)
+      run: cmake --build ${{github.workspace}}/build --config $BUILD_TYPE --parallel $(nproc)
