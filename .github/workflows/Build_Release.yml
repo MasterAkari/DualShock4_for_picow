@@ -12,15 +12,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+    - name: Checkout repo
+      uses: actions/checkout@v4
 
     - name: Clean workspace
       run: |
         echo "Cleaning up previous run"
-        ls
+        rm -rf "${{ github.workspace }}/build"
 
     - name: Checkout pico-sdk/develop
       uses: actions/checkout@v4
@@ -36,6 +34,11 @@ jobs:
     - name: Create Build Environment
       working-directory: ${{github.workspace}}
       run:  cmake -E make_directory ${{github.workspace}}/build
+
+    - name: GCC 6.2.1 Release
+      shell: bash
+      working-directory: ./build
+      run: cmake ../ -DCMAKE_BUILD_TYPE=Release -DPICO_TOOLCHAIN_PATH=/opt/arm/gcc-arm-none-eabi-6_2-2016q4; make --output-sync=target --no-builtin-rules --no-builtin-variables -j$(nproc)
 
     - name: Configure CMake
       shell: bash
