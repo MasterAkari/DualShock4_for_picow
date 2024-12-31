@@ -5,6 +5,7 @@ on:
 
 env:
   BUILD_TYPE: Release
+  PICO_SDK_PATH: ${{github.workspace}}/pico-sdk
 
 jobs:
   build:
