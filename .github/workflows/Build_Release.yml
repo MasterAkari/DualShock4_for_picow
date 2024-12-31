@@ -18,6 +18,9 @@ jobs:
     - name: PWD
       run: |
         pwd
+    - name: PWD
+      run: |
+        echo "$(ls)"
 
     - name: Checkout pico-sdk/develop
       uses: actions/checkout@v4
