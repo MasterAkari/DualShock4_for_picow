@@ -59,6 +59,12 @@ jobs:
       shell: bash
       run: cmake --build ${{github.workspace}}/build --config $BUILD_TYPE --parallel $(nproc)
 
+    - name: Clean workspace
+      run: |
+        echo "Cleaning up previous run"
+        cd ${{github.workspace}}/build
+        ls
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -70,9 +76,4 @@ jobs:
         draft: true
         prerelease: true
 
-    - name: Clean workspace
-      run: |
-        echo "Cleaning up previous run"
-        cd ${{github.workspace}}/build
-        ls
 
