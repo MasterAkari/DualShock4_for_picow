@@ -1,8 +1,6 @@
 name: Create Release Note
 on:
   push:
-    branches:
-    - sprint/*
     tags:
       - 'v*'
 
@@ -76,7 +74,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ steps.current_version.outputs.CURRENT_VERSION }}
-        release_name: "[ ${{ steps.current_version.outputs.CURRENT_VERSION }} ] Sample software"
+        release_name: "[${{ steps.current_version.outputs.CURRENT_VERSION }}] Sample software"
         body: |
           ## This is a sample file for checking operation.
         draft: true
